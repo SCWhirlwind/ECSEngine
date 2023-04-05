@@ -45,8 +45,6 @@ private:
     std::shared_ptr<Entity> m_player;
 
     std::map<std::string, std::shared_ptr<Entity>> cell_map;
-    std::vector<std::vector<std::shared_ptr<Entity>>> m_mapGrid;
-    std::vector<std::vector<std::shared_ptr<Entity>>> m_tileArray;
 
     Physics m_physics;
 
@@ -62,14 +60,10 @@ private:
     void updateBuckets();
 
     void addToBucket(Vec2 pos, std::shared_ptr<Entity> entity);
-    std::vector<std::shared_ptr<Entity>> getBucket(Vec2 pos);
 
-    std::shared_ptr<Entity> createCell(Vec2 pos);
-    std::shared_ptr<Entity> createTile(Vec2 pos, std::string tile);
+    std::string getPosKey(Vec2 pos);
 
-    void spawnPlayer();
-
-    void createWall(Vec2& pos);
+    std::shared_ptr<Entity> createEntity(Vec2 pos, std::string name);
 
     void rayCast(Vec2 a);
     Vec2 lineIntersect(Vec2 a, Vec2 b, Vec2 c, Vec2 d);

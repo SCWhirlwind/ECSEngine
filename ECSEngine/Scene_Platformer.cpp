@@ -254,14 +254,13 @@ void Scene_Platformer::init()
 	registerAction(SDL_SCANCODE_T, "TEXTURE");
 	registerAction(SDL_SCANCODE_C, "COLLISION");
 	registerAction(SDL_SCANCODE_F, "POSITION");
+
 	m_entityManager = EntityManager();
 
 	camera = SDL_FRect{ 0, 0, static_cast<float>(m_graphics->SCREEN_WIDTH), static_cast<float>(m_graphics->SCREEN_HEIGHT) };
 
-	m_tileArray.resize(GRID_HEIGHT, std::vector<std::shared_ptr<Entity>>(GRID_WIDTH));
-	m_mapGrid.resize(GRID_HEIGHT, std::vector<std::shared_ptr<Entity>>(GRID_WIDTH));
 	createLevel();
-	spawnPlayer();
+	m_player = createEntity(Vec2(m_graphics->SCREEN_WIDTH / 2, m_graphics->SCREEN_HEIGHT / 2), "Player");
 }
 
 void Scene_Platformer::onEnd()
@@ -406,13 +405,9 @@ void Scene_Platformer::createLevel()
 	{
 		for (int j = 0; j < GRID_WIDTH; j++)
 		{
-			std::string cord = std::to_string(i) + "," + std::to_string(j);
-			cell_map[cord] = createCell(Vec2(j * SCALED_TILE_WIDTH, i * SCALED_TILE_HEIGHT));
-			m_mapGrid[i][j] = createCell(Vec2(j * SCALED_TILE_WIDTH, i * SCALED_TILE_HEIGHT));
+			auto tile = createEntity(Vec2(j * SCALED_TILE_WIDTH, i * SCALED_TILE_HEIGHT), "Wall");
 
-				auto tile = createTile(Vec2(j * SCALED_TILE_WIDTH, i * SCALED_TILE_HEIGHT), "Wall");
-
-				m_mapGrid[i][j]->getComponent<CellComponent>().entityBucket.emplace_back(tile);
+			addToBucket(Vec2(i, j), tile);
 		}
 	}
 }
@@ -424,71 +419,34 @@ void Scene_Platformer::updateBuckets()
 
 void Scene_Platformer::addToBucket(Vec2 pos, std::shared_ptr<Entity> entity)
 {
-
+	cell_map.insert({getPosKey(pos), entity});
 }
 
-std::vector<std::shared_ptr<Entity>> Scene_Platformer::getBucket(Vec2 pos)
+std::string Scene_Platformer::getPosKey(Vec2 pos)
 {
-	std::vector<std::shared_ptr<Entity>> bucket = m_mapGrid[pos.y][pos.x]->getComponent<CellComponent>().entityBucket;
-	return bucket;
+	return  std::to_string(static_cast<int>(pos.x)) + "," + std::to_string(static_cast<int>(pos.y));
 }
 
-std::shared_ptr<Entity> Scene_Platformer::createCell(Vec2 pos)
+std::shared_ptr<Entity> Scene_Platformer::createEntity(Vec2 pos, std::string name)
 {
-	auto cell = m_entityManager.addEntity("Cell");
-	cell->addComponent<CellComponent>(pos);
+	auto entity = m_entityManager.addEntity(name);
 
-	int x = pos.x;
-	int y = pos.y;
-
-	std::string cord = "(" + std::to_string(x) + "," + std::to_string(y) + ")";
-
-	cell->addComponent<TransformComponent>(pos, pos, 0.0f);
-	cell->addComponent<SpriteComponent>(cord, "Snes.ttf", 30, 80, 20, 1, SDL_Color{ 255, 255, 255 });
-
-	return cell;
-}
-
-std::shared_ptr<Entity> Scene_Platformer::createTile(Vec2 pos, std::string type)
-{
-	auto tile = m_entityManager.addEntity("Tile");
-
-	if (type == "Wall")
+	if (name == "Wall")
 	{
-		tile->addComponent<TransformComponent>(pos, pos, 0);
-		tile->addComponent<SpriteComponent>("tile3.png", TILE_WIDTH, TILE_HEIGHT, SCALE);
-		tile->addComponent<ColliderComponent>(Vec2(SCALED_TILE_WIDTH, SCALED_TILE_HEIGHT));
+		entity->addComponent<TransformComponent>(pos, pos, 0);
+		entity->addComponent<SpriteComponent>("tile3.png", TILE_WIDTH, TILE_HEIGHT, SCALE);
+		entity->addComponent<ColliderComponent>(Vec2(SCALED_TILE_WIDTH, SCALED_TILE_HEIGHT));
 	}
-	return tile;
-}
-
-void Scene_Platformer::spawnPlayer()
-{
-	m_player = m_entityManager.addEntity("Player");
-	m_player->addComponent<SpriteComponent>("dot.png", 32, 32, 1);
-	m_player->addComponent<TransformComponent>(Vec2(m_graphics->SCREEN_WIDTH / 2, m_graphics->SCREEN_HEIGHT / 2), Vec2(m_graphics->SCREEN_WIDTH / 2, m_graphics->SCREEN_HEIGHT / 2), 0);
-	Vec2 size = Vec2(m_player->getComponent<SpriteComponent>().width, m_player->getComponent<SpriteComponent>().height);
-	m_player->addComponent<ColliderComponent>(size);
-	m_player->addComponent<StateComponent>();
-}
-
-void Scene_Platformer::createWall(Vec2& pos)
-{
-	if (m_tileArray[pos.y][pos.x]->tag() != "Wall")
+	else if (name == "Player")
 	{
-		Vec2 prevPos = m_tileArray[pos.y][pos.x]->getComponent<TransformComponent>().position;
-
-		m_tileArray[pos.y][pos.x]->destroy();
-
-		auto cell = m_entityManager.addEntity("Wall");
-		cell->addComponent<TransformComponent>(prevPos, prevPos, 0);
-		cell->addComponent<SpriteComponent>("tile3.png", 32, 32, SCALE);
-
-		cell->addComponent<ColliderComponent>(Vec2(SCALED_TILE_WIDTH, SCALED_TILE_HEIGHT));
-		cell->addComponent<CellComponent>(prevPos * SCALE / 32);
-		cell->addComponent<RectComponent>(prevPos, prevPos + Vec2(TILE_WIDTH, 0), prevPos + Vec2(TILE_WIDTH, TILE_HEIGHT), prevPos + Vec2(0, TILE_HEIGHT));
-		m_tileArray[pos.y][pos.x] = cell;
+		entity->addComponent<SpriteComponent>("dot.png", 32, 32, 1);
+		entity->addComponent<TransformComponent>(pos, pos, 0);
+		Vec2 size = Vec2(entity->getComponent<SpriteComponent>().width, entity->getComponent<SpriteComponent>().height);
+		entity->addComponent<ColliderComponent>(size);
+		entity->addComponent<StateComponent>();
 	}
+
+	return entity;
 }
 
 void Scene_Platformer::rayCast(Vec2 a)
