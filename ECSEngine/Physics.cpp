@@ -1,4 +1,5 @@
 #include "Physics.h"
+#include "Scene_Platformer.h"
 
 Vec2 Physics::getOverlap(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b)
 {
@@ -51,8 +52,8 @@ Vec2 Physics::midPos(std::shared_ptr<Entity> a, Vec2& pos)
     if (a->hasComponent<SpriteComponent>())
     {
         Vec2 size = Vec2(0,0);
-        size.x = a->getComponent<SpriteComponent>().width;
-        size.y = a->getComponent<SpriteComponent>().height;
+        size.x = a->getComponent<SpriteComponent>().width * a->getComponent<SpriteComponent>().scale;
+        size.y = a->getComponent<SpriteComponent>().height * a->getComponent<SpriteComponent>().scale;
 
         return Vec2(pos.x + size.x/ 2.0f, pos.y + size.y / 2.0f);
     }

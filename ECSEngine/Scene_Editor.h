@@ -1,12 +1,12 @@
 #pragma once
 #include "Scene.h"
 
-class Scene_Collision : public Scene
+class Scene_Editor : public Scene
 {
 public:
 
-    Scene_Collision();
-    Scene_Collision(GameManager* game);
+    Scene_Editor();
+    Scene_Editor(GameManager* game);
     void sDoAction(const Action& action) override;
     void sRender() override;
     void update() override;

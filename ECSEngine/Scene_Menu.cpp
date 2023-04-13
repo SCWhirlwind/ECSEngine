@@ -71,7 +71,7 @@ void Scene_Menu::sDoAction(const Action& action)
 				}
 				case 4:
 				{
-					m_game->changeScene("Collider", std::make_shared<Scene_Collision>(m_game));
+					m_game->changeScene("Editor", std::make_shared<Scene_Editor>(m_game));
 					break;
 				}
 			}
@@ -122,7 +122,7 @@ void Scene_Menu::init()
 	createText("Camera Example", 50, Vec2(100, 350));
 	createText("Entity Creation and Deletion Example", 25, Vec2(100, 400));
 	createText("Platformer Example", 40, Vec2(100, 450));
-	createText("Collision Example", 40, Vec2(100, 500));
+	createText("Editor Example", 40, Vec2(100, 500));
 	createCursor();
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 #include "Scene.h"
 #include "Physics.h"
+#include <unordered_map>
 
 class Scene_Platformer : public Scene
 {
@@ -21,7 +22,7 @@ private:
     const int TILE_WIDTH = 32;
     const int TILE_HEIGHT = 32;
 
-    const int SCALE = 1;
+    const int SCALE = 2;
 
     const int SCALED_TILE_WIDTH = TILE_WIDTH * SCALE;
     const int SCALED_TILE_HEIGHT = TILE_HEIGHT * SCALE;
@@ -44,7 +45,7 @@ private:
   
     std::shared_ptr<Entity> m_player;
 
-    std::map<std::string, std::shared_ptr<Entity>> cell_map;
+    std::unordered_map<std::string, std::vector<std::shared_ptr<Entity>>> cell_map;
 
     Physics m_physics;
 
@@ -55,15 +56,17 @@ private:
     void sCamera();
     void sCollision();
 
-    void createLevel();
-
-    void updateBuckets();
+    void createFloor();
 
     void addToBucket(Vec2 pos, std::shared_ptr<Entity> entity);
+
+    void removeFromBucket(Vec2 pos, std::shared_ptr<Entity> entity);
 
     std::string getPosKey(Vec2 pos);
 
     std::shared_ptr<Entity> createEntity(Vec2 pos, std::string name);
+
+    bool removeEntity(Vec2 pos, std::string name);
 
     void rayCast(Vec2 a);
     Vec2 lineIntersect(Vec2 a, Vec2 b, Vec2 c, Vec2 d);
