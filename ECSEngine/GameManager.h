@@ -21,6 +21,12 @@ public:
 
 	void changeScene(const std::string& sceneName, std::shared_ptr<Scene> scene, bool endCurrentScene = false);
 
+	void ToggleTypeInput(bool toggle);
+	bool getTypeInput();
+	bool getRenderText();
+	std::string getInputText();
+	void setInputText(std::string& text);
+
 private:
 
 	GameManager();
@@ -34,10 +40,16 @@ private:
 
 	void Input();
 
+	
+	
 	const int FRAME_RATE = 120;
 
 	static GameManager* sInstance;
 	bool mQuit;
+
+	std::string inputText = "";
+	bool isTypeInput = false;
+	bool renderText = false;
 
 	Graphics* mGraphics;
 	AssetManager* mAssetManager;

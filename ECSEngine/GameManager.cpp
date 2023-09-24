@@ -144,20 +144,71 @@ void GameManager::Input()
 			mQuit = true;
 		}
 
-		if (mEvents.type == SDL_KEYDOWN || mEvents.type == SDL_KEYUP)
+		if (!isTypeInput)
 		{
-			if (currentScene()->getActionMap().find(mEvents.key.keysym.scancode) == currentScene()->getActionMap().end())
+			if (mEvents.type == SDL_KEYDOWN || mEvents.type == SDL_KEYUP)
 			{
-				std::cout << "Non registered key!" << std::endl;
-			}
-			else
-			{
-				const std::string actionType = (mEvents.type == SDL_KEYDOWN) ? "START" : "END";
+				if (currentScene()->getActionMap().find(mEvents.key.keysym.scancode) == currentScene()->getActionMap().end())
+				{
+					std::cout << "Non registered key!" << std::endl;
+				}
+				else
+				{
+					const std::string actionType = (mEvents.type == SDL_KEYDOWN) ? "START" : "END";
 
-				currentScene()->doAction(Action(currentScene()->getActionMap().at(mEvents.key.keysym.scancode), actionType));
+					currentScene()->doAction(Action(currentScene()->getActionMap().at(mEvents.key.keysym.scancode), actionType));
+				}
+			}
+		}
+		else
+		{
+			renderText = false;
+
+			if (mEvents.type == SDL_KEYDOWN)
+			{
+				if (mEvents.key.keysym.sym == SDLK_BACKSPACE && inputText.length() > 0)
+				{
+					inputText.pop_back();
+					renderText = true;
+					std::cout << "Text: " << inputText << std::endl;
+				}
+			}
+			else if (mEvents.type == SDL_TEXTINPUT)
+			{
+				if (!(SDL_GetModState() & KMOD_CTRL && (mEvents.text.text[0] == 'c' || mEvents.text.text[0] == 'C' || mEvents.text.text[0] == 'v' || mEvents.text.text[0] == 'V')))
+				{
+					inputText += mEvents.text.text;
+					renderText = true;
+					std::cout << "Text: " << inputText << std::endl;
+				}
 			}
 		}
 	}
+}
+
+void GameManager::ToggleTypeInput(bool toggle)
+{
+	isTypeInput = toggle;
+}
+
+bool GameManager::getTypeInput()
+{
+	return isTypeInput;
+}
+
+bool GameManager::getRenderText()
+{
+	return renderText;
+}
+
+std::string GameManager::getInputText()
+{
+	return inputText;
+}
+
+void GameManager::setInputText(std::string& text)
+{
+	inputText = text;
 }
 
 std::shared_ptr<Scene> GameManager::currentScene()

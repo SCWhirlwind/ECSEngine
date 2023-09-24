@@ -40,7 +40,5 @@ public:
 	float Clamp(const float& value, const float& min, const float& max) const;
 
 	Vec2 Lerp(Vec2& start, Vec2& end, float time) const;
-
-
 };
 

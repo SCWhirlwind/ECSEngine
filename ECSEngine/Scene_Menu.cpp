@@ -90,14 +90,29 @@ void Scene_Menu::sRender()
 {
 	for (auto &e : m_entityManager.getEntities())
 	{
-		auto& sprite = e->getComponent<SpriteComponent>();
-		auto& transform = e->getComponent<TransformComponent>();
 
-		sprite.destRect.x = static_cast<int>(transform.position.x);
-		sprite.destRect.y = static_cast<int>(transform.position.y);
-		sprite.destRect.w = sprite.width * sprite.scale;
-		sprite.destRect.h = sprite.height * sprite.scale;
-		m_graphics->DrawTexture(sprite.texture, &sprite.srcRect, &sprite.destRect, transform.angle);
+		if (e->hasComponent<SpriteComponent>())
+		{
+			auto& sprite = e->getComponent<SpriteComponent>();
+			auto& transform = e->getComponent<TransformComponent>();
+
+			sprite.destRect.x = static_cast<int>(transform.position.x);
+			sprite.destRect.y = static_cast<int>(transform.position.y);
+			sprite.destRect.w = sprite.width * sprite.scale;
+			sprite.destRect.h = sprite.height * sprite.scale;
+			m_graphics->DrawTexture(sprite.texture, &sprite.srcRect, &sprite.destRect, transform.angle);
+		}
+		else if (e->hasComponent<TextComponent>())
+		{
+			auto& sprite = e->getComponent<TextComponent>();
+			auto& transform = e->getComponent<TransformComponent>();
+
+			sprite.destRect.x = static_cast<int>(transform.position.x);
+			sprite.destRect.y = static_cast<int>(transform.position.y);
+			sprite.destRect.w = sprite.width * sprite.scale;
+			sprite.destRect.h = sprite.height * sprite.scale;
+			m_graphics->DrawTexture(sprite.texture, &sprite.srcRect, &sprite.destRect, transform.angle);
+		}
 	}
 }
 
@@ -134,7 +149,7 @@ void Scene_Menu::onEnd()
 void Scene_Menu::createText(std::string s, int size, Vec2 pos)
 {
 	auto text = m_entityManager.addEntity("Text");
-	text->addComponent<SpriteComponent>(s, "Snes.ttf", size, 300, 200, 1, SDL_Color { 255, 255, 255 });
+	text->addComponent<TextComponent>(s, "Snes.ttf", size, 300, 200, 1, SDL_Color { 255, 255, 255 });
 	text->addComponent<TransformComponent>(pos, Vec2(0, 0), 0);
 }
 

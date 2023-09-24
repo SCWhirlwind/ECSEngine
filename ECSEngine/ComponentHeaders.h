@@ -5,3 +5,5 @@
 #include "ColliderComponent.h"
 #include "StateComponent.h"
 #include "RectComponent.h"
+#include "ParentComponent.h"
+#include "TextComponent.h"

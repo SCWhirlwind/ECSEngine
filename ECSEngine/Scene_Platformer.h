@@ -41,8 +41,6 @@ private:
     bool renderTexture = true;
     bool renderCollision = false;
 
-
-  
     std::shared_ptr<Entity> m_player;
 
     std::unordered_map<std::string, std::vector<std::shared_ptr<Entity>>> cell_map;
