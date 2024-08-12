@@ -22,12 +22,12 @@ public:
 
 		sEdges[0] = p1;
 		sEdges[1] = p2;
-		sEdges[2] = p3;
-		sEdges[3] = p4;
+		sEdges[2] = p4;
+		sEdges[3] = p3;
 
 		eEdges[0] = p2;
-		eEdges[1] = p3;
-		eEdges[2] = p4;
+		eEdges[1] = p4;
+		eEdges[2] = p3;
 		eEdges[3] = p1;
 	}
 };

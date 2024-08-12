@@ -48,12 +48,22 @@ void GameManager::changeScene(const std::string& sceneName, std::shared_ptr<Scen
 	if (scene)
 	{
 		m_sceneMap[sceneName] = scene;
-		m_currentScene = sceneName;
 	}
-	if (m_sceneMap.find(sceneName) == m_sceneMap.end())
+	else
 	{
-		m_currentScene = "";
+		if (m_sceneMap.find(sceneName) == m_sceneMap.end())
+		{
+			std::cerr << "Warning: Scene does not exist: " << sceneName << std::endl;
+			return;
+		}
 	}
+	
+	if (endCurrentScene)
+	{
+		m_sceneMap.erase(m_sceneMap.find(m_currentScene));
+	}
+
+	m_currentScene = sceneName;
 }
 
 GameManager::GameManager()

@@ -14,25 +14,28 @@ Scene_Camera::Scene_Camera(GameManager* game) : Scene(game)
 
 void Scene_Camera::sDoAction(const Action& action)
 {
+
+	const std::string actionName = action.getName();
+
 	if (action.getType() == "START")
 	{
-		if (action.getName() == "QUIT")
+		if (actionName == "QUIT")
 		{
 			onEnd();
 		}
-		if (action.getName() == "UP")
+		if (actionName == "UP")
 		{
 			m_player->getComponent<TransformComponent>().velocity.y = -5;
 		}
-		if (action.getName() == "DOWN")
+		if (actionName == "DOWN")
 		{
 			m_player->getComponent<TransformComponent>().velocity.y = 5;
 		}
-		if (action.getName() == "LEFT")
+		if (actionName == "LEFT")
 		{
 			m_player->getComponent<TransformComponent>().velocity.x = -5;
 		}
-		if (action.getName() == "RIGHT")
+		if (actionName == "RIGHT")
 		{
 			m_player->getComponent<TransformComponent>().velocity.x = 5;
 		}
@@ -134,7 +137,8 @@ void Scene_Camera::onEnd()
 {
 	delete camera;
 	camera = nullptr;
-	m_game->changeScene("Menu", std::make_shared<Scene_Menu>(m_game));
+	m_hasEnded = true;
+	m_game->changeScene("MENU", nullptr, true);
 }
 
 void Scene_Camera::createGridBackground()
@@ -151,13 +155,13 @@ void Scene_Camera::createGridBackground()
 void Scene_Camera::spawnTile(Vec2 vec)
 {
 	auto tile = m_entityManager.addEntity("Tile");
-	tile->addComponent<SpriteComponent>("tile.png", 32, 32, 1);
+	tile->addComponent<SpriteComponent>("tile.png", 32, 32, 1, false);
 	tile->addComponent<TransformComponent>(vec, Vec2(0, 0), 0);
 }
 
 void Scene_Camera::spawnPlayer()
 {
 	m_player = m_entityManager.addEntity("Player");
-	m_player->addComponent<SpriteComponent>("dot.png", 32, 32, 1);
+	m_player->addComponent<SpriteComponent>("dot.png", 32, 32, 1, false);
 	m_player->addComponent<TransformComponent>(Vec2(m_graphics->SCREEN_WIDTH / 2, m_graphics->SCREEN_HEIGHT / 2), Vec2(0, 0), 0);
 }

@@ -7,3 +7,7 @@
 #include "RectComponent.h"
 #include "ParentComponent.h"
 #include "TextComponent.h"
+
+#include "GOLComponent.h"
+#include "CardComponent.h"
+#include "ClickComponent.h"

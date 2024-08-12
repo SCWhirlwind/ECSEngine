@@ -65,13 +65,14 @@ void Scene_Grid::init()
 
 void Scene_Grid::onEnd()
 {
-	m_game->changeScene("Menu", std::make_shared<Scene_Menu>(m_game));
+	m_hasEnded = true;
+	m_game->changeScene("MENU", nullptr, true);
 }
 
 std::shared_ptr<Entity> Scene_Grid::spawnTile(Vec2 vec)
 {
 	auto tile = m_entityManager.addEntity("Tile");
-	tile->addComponent<SpriteComponent>("tile2.png", 32, 32, 1);
+	tile->addComponent<SpriteComponent>("tile2.png", 32, 32, 1, false);
 	tile->addComponent<TransformComponent>(vec, Vec2(0, 0), 0);
 	tile->addComponent<StatComponent>();
 

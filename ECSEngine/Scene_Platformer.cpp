@@ -215,7 +215,8 @@ void Scene_Platformer::init()
 
 void Scene_Platformer::onEnd()
 {
-	m_game->changeScene("Menu", std::make_shared<Scene_Menu>(m_game));
+	m_hasEnded = true;
+	m_game->changeScene("MENU", nullptr, true);
 }
 
 void Scene_Platformer::sPlayerUpdate()
@@ -450,13 +451,13 @@ std::shared_ptr<Entity> Scene_Platformer::createEntity(Vec2 pos, std::string nam
 	if (name == "Wall")
 	{
 		entity->addComponent<TransformComponent>(pos, pos, 0);
-		entity->addComponent<SpriteComponent>("tile3.png", TILE_WIDTH, TILE_HEIGHT, SCALE);
+		entity->addComponent<SpriteComponent>("tile3.png", TILE_WIDTH, TILE_HEIGHT, SCALE, false);
 		entity->addComponent<ColliderComponent>(Vec2(SCALED_TILE_WIDTH, SCALED_TILE_HEIGHT));
 	}
 	else if (name == "Player")
 	{
 		entity->addComponent<TransformComponent>(pos, pos, 0);
-		entity->addComponent<SpriteComponent>("dot.png", 32, 32, 1);
+		entity->addComponent<SpriteComponent>("dot.png", 32, 32, 1, false);
 		Vec2 size = Vec2(entity->getComponent<SpriteComponent>().width, entity->getComponent<SpriteComponent>().height);
 		entity->addComponent<ColliderComponent>(size);
 		entity->addComponent<StateComponent>();

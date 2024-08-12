@@ -75,4 +75,9 @@ public:
 		auto ptr(componentArray[getComponentTypeID<T>()]);
 		return *static_cast<T*>(ptr);
 	}
+
+	template<typename T> void removeComponent()
+	{
+		getComponent<T>() = T();
+	}
 };

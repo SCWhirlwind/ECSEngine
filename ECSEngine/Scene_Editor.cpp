@@ -150,6 +150,10 @@ void Scene_Editor::sRender()
 					{
 						heightText(submenu_heighttextinput);
 					}
+					else
+					{
+						heightText(" ");
+					}
 				}
 
 				auto& sprite = e->getComponent<TextComponent>();
@@ -243,7 +247,8 @@ void Scene_Editor::init()
 
 void Scene_Editor::onEnd()
 {
-	m_game->changeScene("Menu", std::make_shared<Scene_Menu>(m_game));
+	m_hasEnded = true;
+	m_game->changeScene("MENU", nullptr, true);
 }
 
 void Scene_Editor::createText(std::string s, int size, Vec2 pos)
@@ -256,14 +261,14 @@ void Scene_Editor::createText(std::string s, int size, Vec2 pos)
 void Scene_Editor::createCursor()
 {
 	cursor = m_entityManager.addEntity("Cursor");
-	cursor->addComponent<SpriteComponent>("cursor.png", 32, 32, 1);
+	cursor->addComponent<SpriteComponent>("cursor.png", 32, 32, 1, false);
 	cursor->addComponent<TransformComponent>(Vec2(250, 300), Vec2(0, 0), 0);
 }
 
 void Scene_Editor::createSubMenu()
 {
 	submenu = m_entityManager.addEntity("SubMenu");
-	submenu->addComponent<SpriteComponent>("menubox.png", 500, 250, 1);
+	submenu->addComponent<SpriteComponent>("menubox.png", 500, 250, 1, false);
 	submenu->addComponent<TransformComponent>(Vec2((m_graphics->SCREEN_WIDTH / 2) - (500 / 2), (m_graphics->SCREEN_HEIGHT / 2) - (250 / 2)), Vec2(0, 0), 0);
 
 	submenu_heighttext = m_entityManager.addEntity("SubMenu");
@@ -272,7 +277,7 @@ void Scene_Editor::createSubMenu()
 	submenu_heighttext->addComponent<TransformComponent>(Vec2(subparent.parent->getComponent<TransformComponent>().position.x + 25, subparent.parent->getComponent<TransformComponent>().position.y + 25), Vec2(0, 0), 0);
 
 	submenu_heighttextbox = m_entityManager.addEntity("SubMenu");
-	submenu_heighttextbox->addComponent<SpriteComponent>("white.png", 250, 30, 1);
+	submenu_heighttextbox->addComponent<SpriteComponent>("white.png", 250, 30, 1, false);
 	submenu_heighttextbox->addComponent<ParentComponent>(submenu);
 	submenu_heighttextbox->addComponent<TransformComponent>(Vec2(subparent.parent->getComponent<TransformComponent>().position.x + 25, subparent.parent->getComponent<TransformComponent>().position.y + 65), Vec2(0, 0), 0);
 

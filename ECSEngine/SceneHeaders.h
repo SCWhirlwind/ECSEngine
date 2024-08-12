@@ -4,3 +4,6 @@
 #include "Scene_Spawn.h"
 #include "Scene_Platformer.h"
 #include "Scene_Editor.h"
+#include "Scene_Ballbouncegame.h"
+#include "Scene_GOL.h"
+#include "Scene_Poker.h"

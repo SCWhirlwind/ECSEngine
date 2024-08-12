@@ -116,13 +116,14 @@ void Scene_Spawn::init()
 void Scene_Spawn::onEnd()
 {
 	m_timer = nullptr;
-	m_game->changeScene("Menu", std::make_shared<Scene_Menu>(m_game));
+	m_hasEnded = true;
+	m_game->changeScene("MENU", nullptr, true);
 }
 
 void Scene_Spawn::createSpawner()
 {
 	m_spawner = m_entityManager.addEntity("Spawner");
-	m_spawner->addComponent<SpriteComponent>("spawner.png", 32, 32, 1);
+	m_spawner->addComponent<SpriteComponent>("spawner.png", 32, 32, 1, false);
 	m_spawner->addComponent<TransformComponent>(Vec2(50, m_graphics->SCREEN_HEIGHT / 2), Vec2(0, 0), 0);
 }
 
@@ -131,7 +132,7 @@ void Scene_Spawn::createBullet()
 	yOffset = ((5 + 5) * ((float)std::rand() / RAND_MAX)) - 5;
 	std::cout << yOffset << std::endl;
 	auto e = m_entityManager.addEntity("Bullet");
-	e->addComponent<SpriteComponent>("bullet.png", 32, 32, 1);
+	e->addComponent<SpriteComponent>("bullet.png", 32, 32, 1, false);
 	e->addComponent<TransformComponent>(Vec2(m_spawner->getComponent<TransformComponent>().position), Vec2(5, yOffset), 0);
 	e->addComponent<StatComponent>();
 

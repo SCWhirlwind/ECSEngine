@@ -20,6 +20,10 @@ void Scene::doAction(const Action& action)
 
 void Scene::simulate(const size_t frame)
 {
+	for (size_t i = 0; i < frame; i++)
+	{
+		update();
+	}
 }
 
 void Scene::registerAction(int inputKey, const std::string& actionName)
@@ -29,12 +33,12 @@ void Scene::registerAction(int inputKey, const std::string& actionName)
 
 size_t Scene::width() const
 {
-	return size_t();
+	return m_graphics->SCREEN_WIDTH;
 }
 
 size_t Scene::height() const
 {
-	return size_t();
+	return m_graphics->SCREEN_HEIGHT;
 }
 
 size_t Scene::currentFrame() const

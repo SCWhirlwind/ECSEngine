@@ -25,7 +25,7 @@ void Scene_Menu::sDoAction(const Action& action)
 		{
 			if (m_menuIndex == 0)
 			{
-				m_menuIndex = 4;
+				m_menuIndex = 7;
 			}
 			else
 			{
@@ -35,7 +35,7 @@ void Scene_Menu::sDoAction(const Action& action)
 		}
 		else if (action.getName() == "DOWN")
 		{
-			if (m_menuIndex == 4)
+			if (m_menuIndex == 7)
 			{
 				m_menuIndex = 0;
 			}
@@ -51,27 +51,42 @@ void Scene_Menu::sDoAction(const Action& action)
 			{
 				case 0:
 				{
-					m_game->changeScene("Grid", std::make_shared<Scene_Grid>(m_game));
+					m_game->changeScene("GRID", std::make_shared<Scene_Grid>(m_game));
 					break;
 				}
 				case 1:
 				{
-					m_game->changeScene("Camera", std::make_shared<Scene_Camera>(m_game));
+					m_game->changeScene("CAMERA", std::make_shared<Scene_Camera>(m_game));
 					break;
 				}
 				case 2:
 				{
-					m_game->changeScene("Spawn", std::make_shared<Scene_Spawn>(m_game));
+					m_game->changeScene("SPAWN", std::make_shared<Scene_Spawn>(m_game));
 					break;
 				}
 				case 3:
 				{
-					m_game->changeScene("Platformer", std::make_shared<Scene_Platformer>(m_game));
+					m_game->changeScene("PLATFORMER", std::make_shared<Scene_Platformer>(m_game));
 					break;
 				}
 				case 4:
 				{
-					m_game->changeScene("Editor", std::make_shared<Scene_Editor>(m_game));
+					m_game->changeScene("EDITOR", std::make_shared<Scene_Editor>(m_game));
+					break;
+				}
+				case 5:
+				{
+					m_game->changeScene("BALLBOUNCEGAME", std::make_shared<Scene_Ballbouncegame>(m_game));
+					break;
+				}
+				case 6:
+				{
+					m_game->changeScene("GOL", std::make_shared<Scene_GOL>(m_game));
+					break;
+				}
+				case 7:
+				{
+					m_game->changeScene("POKER", std::make_shared<Scene_Poker>(m_game));
 					break;
 				}
 			}
@@ -138,6 +153,9 @@ void Scene_Menu::init()
 	createText("Entity Creation and Deletion Example", 25, Vec2(100, 400));
 	createText("Platformer Example", 40, Vec2(100, 450));
 	createText("Editor Example", 40, Vec2(100, 500));
+	createText("BallGame Example", 40, Vec2(100, 550));
+	createText("Game of Life Example", 40, Vec2(100, 600));
+	createText("Poker Example", 40, Vec2(100, 650));
 	createCursor();
 }
 
@@ -156,7 +174,7 @@ void Scene_Menu::createText(std::string s, int size, Vec2 pos)
 void Scene_Menu::createCursor()
 {
 	cursor = m_entityManager.addEntity("Cursor");
-	cursor->addComponent<SpriteComponent>("cursor.png", 32, 32, 1);
+	cursor->addComponent<SpriteComponent>("cursor.png", 32, 32, 1, false);
 	cursor->addComponent<TransformComponent>(Vec2(350, 300), Vec2(0, 0), 0);
 }
 
