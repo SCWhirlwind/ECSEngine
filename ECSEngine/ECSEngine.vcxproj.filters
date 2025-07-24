@@ -37,19 +37,13 @@
     <Filter Include="Header Files\ECS\Components\Poker">
       <UniqueIdentifier>{cd7343e7-3314-42a1-9557-f803431d3971}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\System">
+      <UniqueIdentifier>{316c000e-bbaa-4903-a102-d6e23bd40529}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GameManager.cpp">
       <Filter>Source Files\Managers</Filter>
-    </ClCompile>
-    <ClCompile Include="Timer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vec2.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="EntityManager.cpp">
       <Filter>Source Files\ECS</Filter>
@@ -65,9 +59,6 @@
     </ClCompile>
     <ClCompile Include="Scene.cpp">
       <Filter>Source Files\Managers</Filter>
-    </ClCompile>
-    <ClCompile Include="Action.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="InputManager.cpp">
       <Filter>Source Files\Managers</Filter>
@@ -93,9 +84,6 @@
     <ClCompile Include="ColliderComponent.h">
       <Filter>Header Files\ECS\Components</Filter>
     </ClCompile>
-    <ClCompile Include="Physics.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Scene_Editor.cpp">
       <Filter>Source Files\Scenes</Filter>
     </ClCompile>
@@ -113,6 +101,21 @@
     </ClCompile>
     <ClCompile Include="Poker.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Action.cpp">
+      <Filter>Source Files\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics.cpp">
+      <Filter>Source Files\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Source Files\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Vec2.cpp">
+      <Filter>Source Files\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source Files\System</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -227,7 +230,10 @@
     <ClInclude Include="CardComponent.h">
       <Filter>Header Files\ECS\Components\Poker</Filter>
     </ClInclude>
-    <ClInclude Include="ClickComponent.h">
+    <ClInclude Include="GravityComponent.h">
+      <Filter>Header Files\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ButtonComponent.h">
       <Filter>Header Files\ECS\Components</Filter>
     </ClInclude>
   </ItemGroup>

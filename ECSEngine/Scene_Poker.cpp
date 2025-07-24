@@ -72,14 +72,17 @@ void Scene_Poker::sRender()
 	{
 		if (e->hasComponent<SpriteComponent>() && e->hasComponent<TransformComponent>())
 		{
-			auto& sprite = e->getComponent<SpriteComponent>();
-			auto& transform = e->getComponent<TransformComponent>();
+			if (e->getComponent<SpriteComponent>().isActive)
+			{
+				auto& sprite = e->getComponent<SpriteComponent>();
+				auto& transform = e->getComponent<TransformComponent>();
 
-			sprite.destRect.x = static_cast<int>(transform.position.x);
-			sprite.destRect.y = static_cast<int>(transform.position.y);
-			sprite.destRect.w = sprite.width * sprite.scale;
-			sprite.destRect.h = sprite.height * sprite.scale;
-			m_graphics->DrawTexture(sprite.texture, &sprite.srcRect, &sprite.destRect, transform.angle);
+				sprite.destRect.x = static_cast<int>(transform.position.x);
+				sprite.destRect.y = static_cast<int>(transform.position.y);
+				sprite.destRect.w = sprite.width * sprite.scale;
+				sprite.destRect.h = sprite.height * sprite.scale;
+				m_graphics->DrawTexture(sprite.texture, &sprite.srcRect, &sprite.destRect, transform.angle);
+			}
 		}
 	}
 }
@@ -87,6 +90,66 @@ void Scene_Poker::sRender()
 void Scene_Poker::update()
 {
 	m_entityManager.update();
+
+	switch (m_state)
+	{
+		case Scene_Poker::State::BUILD:
+
+			if (isBuying)
+			{
+				if (m_inputManager->MouseButtonReleased(InputManager::MOUSE_BUTTON::left))
+				{
+					int mouseX = m_inputManager->MousePos().x;
+					int mouseY = m_inputManager->MousePos().y;
+
+					mouseX = mouseX % 24;
+					mouseY = mouseY % 24;
+					
+					if (mouseX < 12)
+					{
+						std::cout << "Mouse X is less than 12" << std::endl;
+					}
+					if (mouseY < 12)
+					{
+						std::cout << "Mouse Y is less than 12" << std::endl;
+					}
+					if (mouseX > 12)
+					{
+						std::cout << "Mouse X is more than 12" << std::endl;
+					}
+					if (mouseY > 12)
+					{
+						std::cout << "Mouse Y is more than 12" << std::endl;
+					}
+					
+					std::cout << "Mouse X: " << mouseX << " Mouse Y: " << mouseY << std::endl;
+
+					selectorCursor->getComponent<TransformComponent>().position = m_inputManager->MousePos();
+				}
+			}
+
+			break;
+		case Scene_Poker::State::DEAL:
+			break;
+		case Scene_Poker::State::WAVE:
+			break;
+		default:
+			break;
+	}
+
+	for (auto& e : m_entityManager.getEntities())
+	{
+		if (e->tag() == "UI")
+		{
+			if (e->hasComponent<ButtonComponent>())
+			{
+				if (e->getComponent<ButtonComponent>().isActive)
+				{
+					sUICollision(e);
+				}
+			}
+		}
+	}
 }
 
 void Scene_Poker::init()
@@ -107,7 +170,7 @@ void Scene_Poker::init()
 
 	std::srand(std::time(nullptr));
 
-	
+	createUI();
 	//dealHand();
 	//sPoker.sortHand(m_playerHand);
 	//showHand();
@@ -120,12 +183,58 @@ void Scene_Poker::onEnd()
 	m_game->changeScene("MENU", nullptr, true);
 }
 
+void Scene_Poker::sUICollision(std::shared_ptr<Entity> object)
+{
+	if (object->tag() == "UI" && object->hasComponent<ButtonComponent>())
+	{
+		if (m_inputManager->MouseButtonReleased(InputManager::MOUSE_BUTTON::left))
+		{
+			Vec2 mousePos = m_inputManager->MousePos();
+			Vec2 buttonPos = object->getComponent<TransformComponent>().position;
+			if (mousePos.x >= buttonPos.x && mousePos.x <= buttonPos.x + object->getComponent<SpriteComponent>().width &&
+				mousePos.y >= buttonPos.y && mousePos.y <= buttonPos.y + object->getComponent<SpriteComponent>().height)
+			{
+				object->getComponent<ButtonComponent>().isClicked = true;
+				std::cout << "Button clicked!" << std::endl;
+			}
+		}
+	}
+
+	if (buyTowerButton->getComponent<ButtonComponent>().isClicked)
+	{
+		isBuying = true;
+		selectorCursor->getComponent<SpriteComponent>().isActive = true;
+		buyTowerButton->getComponent<ButtonComponent>().isClicked = false;
+	}
+}
+
+void Scene_Poker::addTile(int x, int y, std::shared_ptr<Entity> tile)
+{
+	if (x <= 50 && y <= 50)
+	{
+		if (grid.size() <= y) grid.resize(y + 1);
+		if (grid[y].size() <= x) grid[y].resize(x + 1);
+
+		grid[y][x] = GridCell(tile);
+	}
+}
+
+void Scene_Poker::selectTiles(Vec2 vec)
+{
+
+}
+
 void Scene_Poker::createUI()
 {
 	createBackground();
+
 	buyTowerButton = m_entityManager.addEntity("UI");
-	buyTowerButton->addComponent<TransformComponent>();
-	buyTowerButton->addComponent<SpriteComponent>();
+	buyTowerButton->addComponent<TransformComponent>(Vec2(1068, 856), Vec2(0, 0), 0);
+	buyTowerButton->addComponent<SpriteComponent>("buybutton.png", 200, 100, 1, false);
+	buyTowerButton->addComponent<ButtonComponent>();
+	buyTowerButton->getComponent<ButtonComponent>().isActive = true;
+
+	createCursor();
 }
 
 void Scene_Poker::createBackground()
@@ -159,10 +268,20 @@ void Scene_Poker::createBackground()
 				auto tile = m_entityManager.addEntity("Tile");
 				tile->addComponent<TransformComponent>(Vec2(std::stoi(x), std::stoi(y)), Vec2(std::stoi(x), std::stoi(y)), 0);
 				tile->addComponent<SpriteComponent>(name, 32, 32, 0.75, false);
+				//std::cout << "X: " << std::stoi(x) / 24 << " Y: " << std::stoi(y) / 24 << std::endl;
+				addTile(std::stoi(x) / 24, std::stoi(y) / 24, tile);
 			}
 		}
 		myfile.close();
 	}
+}
+
+void Scene_Poker::createCursor()
+{
+	selectorCursor = m_entityManager.addEntity("SelectorCursor");
+	selectorCursor->addComponent<TransformComponent>(Vec2(0, 0), Vec2(0, 0), 0);
+	selectorCursor->addComponent<SpriteComponent>("selector.png", 32, 32, 0.75, false);
+	selectorCursor->getComponent<SpriteComponent>().isActive = false;
 }
 
 void Scene_Poker::dealHand()

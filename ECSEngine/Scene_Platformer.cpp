@@ -47,6 +47,11 @@ void Scene_Platformer::sDoAction(const Action& action)
 			std::cout << "Mouse Actual Pos:" << MousePos.x + camera.x << " " << MousePos.y + camera.y << std::endl;
 			//std::cout << "Transform: " << m_player->getComponent<TransformComponent>().position << std::endl;
 		}
+		if (action.getName() == "ENEMY")
+		{
+			Vec2 MousePos = m_inputManager->MousePos();
+			createEntity(MousePos, "Enemy");
+		}
 		if (action.getName() == "TEXTURE")
 		{
 			renderTexture = !renderTexture;
@@ -118,7 +123,8 @@ void Scene_Platformer::sRender()
 			}
 		}
 	}
-	/*for (auto& e : m_entityManager.getEntities("Wall"))
+	/*
+	for (auto& e : m_entityManager.getEntities("Wall"))
 	{
 		if (e->hasComponent<ColliderComponent>())
 		{
@@ -171,6 +177,7 @@ void Scene_Platformer::update()
 
 	if (m_inputManager->MouseButtonPressed(InputManager::MOUSE_BUTTON::left))
 	{
+		createEnemy();
 		//Vec2 PosToArray = Vec2(std::floor((MousePos.x + camera.x) / 32 / SCALE), std::floor((MousePos.y + camera.y) / 32 / SCALE));
 
 		//std::cout << MousePos << std::endl;
@@ -189,6 +196,15 @@ void Scene_Platformer::update()
 	}
 
 	m_player->getComponent<TransformComponent>().prevPosition = m_player->getComponent<TransformComponent>().position;
+
+	for (auto& e : m_entityManager.getEntities("Enemy"))
+	{
+		if (e->hasComponent<GravityComponent>())
+		{
+			e->getComponent<TransformComponent>().position.y += e->getComponent<GravityComponent>().weight;
+		}
+
+	}
 }
 
 void Scene_Platformer::init()
@@ -204,6 +220,7 @@ void Scene_Platformer::init()
 	registerAction(SDL_SCANCODE_T, "TEXTURE");
 	registerAction(SDL_SCANCODE_C, "COLLISION");
 	registerAction(SDL_SCANCODE_F, "POSITION");
+	registerAction(SDL_SCANCODE_E, "ENEMY");
 
 	m_entityManager = EntityManager();
 
@@ -304,13 +321,13 @@ void Scene_Platformer::sCollision()
 		}
 	}
 
-	if (m_inputManager->MouseButtonPressed(InputManager::MOUSE_BUTTON::left))
+	/*if (m_inputManager->MouseButtonPressed(InputManager::MOUSE_BUTTON::left))
 	{
 		for (std::shared_ptr<Entity> entity : nearbyEntities)
 		{
 			std::cout << entity->id() << std::endl;
 		}
-	}
+	}*/
 
 	for (std::shared_ptr<Entity> e : nearbyEntities)
 	{
@@ -400,6 +417,16 @@ void Scene_Platformer::createFloor()
 	}
 }
 
+void Scene_Platformer::createEnemy()
+{
+	Vec2 MousePos = m_inputManager->MousePos();
+	createEntity(MousePos, "Enemy");
+	//auto enemy = m_entityManager.addEntity("Enemy");
+	//
+	//enemy->addComponent<TransformComponent>(MousePos, MousePos, 0);
+	//enemy->addComponent<SpriteComponent>("turtle.png", 32, 32, 1, false);
+}
+
 void Scene_Platformer::addToBucket(Vec2 pos, std::shared_ptr<Entity> entity)
 {
 	Vec2 TopLeft = Vec2(static_cast<int>(pos.x / SCALED_TILE_WIDTH), static_cast<int>(pos.y / SCALED_TILE_HEIGHT));
@@ -461,6 +488,14 @@ std::shared_ptr<Entity> Scene_Platformer::createEntity(Vec2 pos, std::string nam
 		Vec2 size = Vec2(entity->getComponent<SpriteComponent>().width, entity->getComponent<SpriteComponent>().height);
 		entity->addComponent<ColliderComponent>(size);
 		entity->addComponent<StateComponent>();
+	}
+	else if (name == "Enemy")
+	{
+		entity->addComponent<TransformComponent>(pos, pos, 0);
+		entity->addComponent<SpriteComponent>("turtle.png", 32, 32, 1, false);
+		entity->addComponent<GravityComponent>();
+		Vec2 size = Vec2(entity->getComponent<SpriteComponent>().width, entity->getComponent<SpriteComponent>().height);
+		entity->addComponent<ColliderComponent>(size);
 	}
 
 	return entity;

@@ -17,6 +17,8 @@ public:
 	int width;
 	float scale;
 
+	bool isActive = true;
+
 	Animation activeAnim;
 	bool hasAnim;
 

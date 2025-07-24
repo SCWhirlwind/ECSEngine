@@ -167,8 +167,8 @@
     <ClInclude Include="AssetManager.h" />
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="BallComponent.h" />
+    <ClInclude Include="ButtonComponent.h" />
     <ClInclude Include="CardComponent.h" />
-    <ClInclude Include="ClickComponent.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="ComponentHeaders.h" />
     <ClInclude Include="Entity.h" />
@@ -176,6 +176,7 @@
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="GOLComponent.h" />
     <ClInclude Include="Graphics.h" />
+    <ClInclude Include="GravityComponent.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Level.h" />
     <ClInclude Include="ParentComponent.h" />

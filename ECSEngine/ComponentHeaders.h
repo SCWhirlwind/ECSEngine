@@ -10,4 +10,7 @@
 
 #include "GOLComponent.h"
 #include "CardComponent.h"
-#include "ClickComponent.h"
+
+#include "GravityComponent.h"
+
+#include "ButtonComponent.h"

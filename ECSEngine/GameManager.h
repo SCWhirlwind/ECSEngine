@@ -22,8 +22,8 @@ public:
 	void changeScene(const std::string& sceneName, std::shared_ptr<Scene> scene, bool endCurrentScene = false);
 
 	void ToggleTypeInput(bool toggle);
-	bool getTypeInput();
-	bool getRenderText();
+	bool getTypeInput() const;
+	bool getRenderText() const;
 	std::string getInputText();
 	void setInputText(std::string& text);
 

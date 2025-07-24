@@ -56,6 +56,8 @@ private:
 
     void createFloor();
 
+    void createEnemy();
+
     void addToBucket(Vec2 pos, std::shared_ptr<Entity> entity);
 
     void removeFromBucket(Vec2 pos, std::shared_ptr<Entity> entity);

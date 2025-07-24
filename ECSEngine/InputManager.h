@@ -18,7 +18,7 @@ public:
 
 	bool MouseButtonDown(MOUSE_BUTTON button);
 	bool MouseButtonPressed(MOUSE_BUTTON button);
-	bool MouseButtonReleasd(MOUSE_BUTTON button);
+	bool MouseButtonReleased(MOUSE_BUTTON button);
 
 	Vec2 MousePos();
 

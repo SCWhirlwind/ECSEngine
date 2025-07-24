@@ -79,7 +79,7 @@ bool InputManager::MouseButtonPressed(MOUSE_BUTTON button)
     return ((mPrevMouseState & mask) == 0) && ((mMouseState & mask) != 0);
 }
 
-bool InputManager::MouseButtonReleasd(MOUSE_BUTTON button)
+bool InputManager::MouseButtonReleased(MOUSE_BUTTON button)
 {
     Uint32 mask = 0;
 

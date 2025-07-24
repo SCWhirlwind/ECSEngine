@@ -10,6 +10,7 @@ GameManager* GameManager::Instance()
 	if (sInstance == nullptr)
 	{
 		sInstance = new GameManager();
+
 	}
 	return sInstance;
 }
@@ -201,12 +202,12 @@ void GameManager::ToggleTypeInput(bool toggle)
 	isTypeInput = toggle;
 }
 
-bool GameManager::getTypeInput()
+bool GameManager::getTypeInput() const
 {
 	return isTypeInput;
 }
 
-bool GameManager::getRenderText()
+bool GameManager::getRenderText() const
 {
 	return renderText;
 }
