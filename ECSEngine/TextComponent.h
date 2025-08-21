@@ -19,6 +19,8 @@ public:
 	int width;
 	int scale;
 
+	bool isActive = true;
+
 	TextComponent()
 	{
 	}

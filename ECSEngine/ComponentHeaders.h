@@ -14,3 +14,5 @@
 #include "GravityComponent.h"
 
 #include "ButtonComponent.h"
+
+#include "TowerComponent.h"

@@ -22,6 +22,8 @@ private:
 
 	Physics mPhysics;
 
+	void renderEntities(std::shared_ptr<Entity> entity);
+
 	float elapseTime = 0;
 
 	enum class State { BUILD, DEAL, WAVE };
@@ -29,6 +31,8 @@ private:
 	struct GridCell
 	{
 		std::shared_ptr<Entity> cell;
+
+		bool buildable = false;
 
 		GridCell() :  cell(nullptr) {};
 		GridCell(std::shared_ptr<Entity> ent) : cell(ent) {};
@@ -38,11 +42,32 @@ private:
 
 	State m_state = State::BUILD;
 
+	std::vector<std::shared_ptr<Entity>> towerList;
+
 	std::shared_ptr<Entity> m_playerHand[5];
+	std::shared_ptr<Entity> m_sortHand[5];
 	Poker sPoker;
 
 	std::shared_ptr<Entity> buyTowerButton;
-	std::shared_ptr<Entity> selectorCursor;
+
+	std::shared_ptr<Entity> selectorCursor[4];
+	Vec2 cursorlocation[4] = {	Vec2(0, 0), Vec2(0, 0), Vec2(0, 0), Vec2(0, 0) };
+
+	std::shared_ptr<Entity> dealBackground;
+
+	std::shared_ptr<Entity> refreshButton[5];
+
+	std::shared_ptr<Entity> acceptButton;
+
+	std::shared_ptr<Entity> handText;
+	std::shared_ptr<Entity> timerText;
+
+	float currentTime = 5.0f;
+	int previousTime = 0;
+
+	bool handresult = false;
+
+	bool dealt = false;
 
 	bool isBuying = false;
 
@@ -52,20 +77,29 @@ private:
 	void sUICollision(std::shared_ptr<Entity> object);
 
 	void addTile(int x, int y, std::shared_ptr<Entity> tile);
-	void selectTiles(Vec2 vec);
+	bool selectTiles();
 
 	void createUI();
 	void createBackground();
+	void createDealBackground();
 	void createCursor();
+	void createRefreshButton();
+	void createAcceptButton();
+
+	void createTower();
 	
 	void dealHand();
-	void showHand();
 	void clearHand();
+
+	void handResult();
 
 	void changeCard(std::shared_ptr<Entity>* card, int selection);
 
 	void createface(std::shared_ptr<Entity> card);
 
+	void createHandText(std::string s, int size, Vec2 pos);
+	void createTimerText(std::string s, int size, Vec2 pos);	
 
+	void setTowerStats(int hand, int high, std::shared_ptr<Entity> tower);
 };
 

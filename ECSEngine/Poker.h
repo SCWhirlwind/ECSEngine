@@ -8,7 +8,7 @@ public:
 
 	std::shared_ptr<Entity>* sortHand(std::shared_ptr<Entity> hand[]);
 
-	int checkHand(std::shared_ptr<Entity> hand[]);
+	std::pair<std::string, int> checkHand(std::shared_ptr<Entity> hand[]);
 	int checkHighCard(std::shared_ptr<Entity> hand[], int handtype);
 
 private:

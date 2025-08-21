@@ -199,6 +199,7 @@
     <ClInclude Include="StateComponent.h" />
     <ClInclude Include="TextComponent.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="TowerComponent.h" />
     <ClInclude Include="TransformComponent.h" />
     <ClInclude Include="Vec2.h" />
   </ItemGroup>

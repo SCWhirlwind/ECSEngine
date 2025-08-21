@@ -16,76 +16,65 @@ std::shared_ptr<Entity>* Poker::sortHand(std::shared_ptr<Entity> hand[])
 	return hand;
 }
 
-int Poker::checkHand(std::shared_ptr<Entity> hand[])
+std::pair<std::string, int> Poker::checkHand(std::shared_ptr<Entity> hand[])
 {
 	if (isFiveOfAKind(hand))
 	{
-		std::cout << "Five of a kind" << std::endl;
-		return 10;
+		return std::make_pair("Five of a kind", 80);
 	}
 	else if (isRoyalFlush(hand))
 	{
-		std::cout << "Royal flush" << std::endl;
-		return 9;
+		return std::make_pair("Royal flush", 60);
 	}
 	else if (isFourOfAKind(hand))
 	{
-		std::cout << "Four of a kind" << std::endl;
-		return 8;
+		return std::make_pair("Four of a kind", 50);
+
 	}
 	else if (isStraightFlush(hand))
 	{
-		std::cout << "Straight flush" << std::endl;
-		return 7;
+		return std::make_pair("Straight flush", 40);
 	}
 	else if (isStraight(hand))
 	{
-		std::cout << "Straight" << std::endl;
-		return 6;
+		return std::make_pair("Straight", 30);
 	}
 	else if (isFullHouse(hand))
 	{
-		std::cout << "Fullhouse" << std::endl;
-		return 5;
+		return std::make_pair("Fullhouse", 25);
 	}
 	else if (isFlush(hand))
 	{
-		std::cout << "Flush" << std::endl;
-		return 4;
+		return std::make_pair("Flush", 20);
 	}
 	else if (isThreeOfAKind(hand))
 	{
-		std::cout << "Three of a kind" << std::endl;
-		return 3;
+		return std::make_pair("Three of a kind", 15);
 	}
 	else if (isTwoPair(hand))
 	{
-		std::cout << "Two Pair" << std::endl;
-		return 2;
+		return std::make_pair("Two Pair", 10);
 	}
 	else if (isOnePair(hand))
 	{
-		std::cout << "One Pair" << std::endl;
-		return 1;
+		return std::make_pair("One Pair", 5);
 	}
 	else if (isHighCard(hand))
 	{
-		std::cout << "High Card" << std::endl;
-		return 0;
+		return std::make_pair("High Card", 1);
 	}
-	std::cout << "Error" << std::endl;
-	return -1;
+	return std::make_pair("Error", -1);
 }
 
 int Poker::checkHighCard(std::shared_ptr<Entity> hand[], int handtype)
 {
 	switch (handtype)
 	{
-		case 0:
+		case 1:
 		{
 			return hand[4]->getComponent<CardComponent>().rank;
 		}
-		case 1:
+		case 5:
 		{
 			for (int i = 0; i < 4; i++)
 			{
@@ -96,7 +85,7 @@ int Poker::checkHighCard(std::shared_ptr<Entity> hand[], int handtype)
 			}
 			break;
 		}
-		case 2:
+		case 10:
 		{
 			for (int i = 4; i > 0; i--)
 			{
@@ -107,7 +96,7 @@ int Poker::checkHighCard(std::shared_ptr<Entity> hand[], int handtype)
 			}
 			break;
 		}
-		case 3:
+		case 15:
 		{
 			for (int i = 0; i < 4; i++)
 			{
@@ -118,12 +107,12 @@ int Poker::checkHighCard(std::shared_ptr<Entity> hand[], int handtype)
 			}
 			break;
 		}
-		case 4:
+		case 20:
 		{
 			return hand[4]->getComponent<CardComponent>().rank;
 			break;
 		}
-		case 5:
+		case 25:
 		{
 				if (hand[0]->getComponent<CardComponent>().rank == hand[1]->getComponent<CardComponent>().rank &&
 					hand[1]->getComponent<CardComponent>().rank == hand[2]->getComponent<CardComponent>().rank)
@@ -135,17 +124,17 @@ int Poker::checkHighCard(std::shared_ptr<Entity> hand[], int handtype)
 					return hand[4]->getComponent<CardComponent>().rank;
 				}
 		}
-		case 6:
+		case 30:
 		{
 			return hand[4]->getComponent<CardComponent>().rank;
 			break;
 		}
-		case 7:
+		case 40:
 		{
 			return hand[4]->getComponent<CardComponent>().rank;
 			break;
 		}
-		case 8:
+		case 50:
 		{
 			if (hand[0]->getComponent<CardComponent>().rank == hand[1]->getComponent<CardComponent>().rank)
 			{
@@ -156,12 +145,12 @@ int Poker::checkHighCard(std::shared_ptr<Entity> hand[], int handtype)
 				return hand[4]->getComponent<CardComponent>().rank;
 			}
 		}
-		case 9:
+		case 60:
 		{
 			return hand[4]->getComponent<CardComponent>().rank;
 			break;
 		}
-		case 10:
+		case 80:
 		{
 			return hand[4]->getComponent<CardComponent>().rank;
 			break;
@@ -353,4 +342,3 @@ bool Poker::isHighCard(std::shared_ptr<Entity> hand[])
 	}
 	return false;
 }
-
