@@ -163,7 +163,19 @@ int Poker::checkHighCard(std::shared_ptr<Entity> hand[], int handtype)
 	return -1;
 }
 
+Vec2 Poker::midPos(std::shared_ptr<Entity> a, Vec2& pos)
+{
+	if (a->hasComponent<SpriteComponent>())
+	{
+		Vec2 size = Vec2(0, 0);
+		size.x = a->getComponent<SpriteComponent>().width * a->getComponent<SpriteComponent>().scale;
+		size.y = a->getComponent<SpriteComponent>().height * a->getComponent<SpriteComponent>().scale;
 
+		return Vec2(pos.x + size.x / 2.0f, pos.y + size.y / 2.0f);
+	}
+
+	return Vec2(0, 0);
+}
 
 bool Poker::isFiveOfAKind(std::shared_ptr<Entity> hand[])
 {

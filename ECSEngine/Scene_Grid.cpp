@@ -190,7 +190,7 @@ Vec2 Scene_Grid::gridCoord()
 	float invc = det * -c;
 	float invd = det * a;
 
-	float posx = m_inputManager->MousePos().x * inva + m_inputManager->MousePos().y * invb - (rows * 0.75) - 4; //+ m_graphics->SCREEN_WIDTH / 2 - 32 / 2;
+	float posx = m_inputManager->MousePos().x * inva + m_inputManager->MousePos().y * invb - (rows * 0.75) - 12; //+ m_graphics->SCREEN_WIDTH / 2 - 32 / 2;
 	float posy = m_inputManager->MousePos().x * invc + m_inputManager->MousePos().y * invd + 4;
 
 	return Vec2(static_cast<int>(posx), static_cast<int>(posy));

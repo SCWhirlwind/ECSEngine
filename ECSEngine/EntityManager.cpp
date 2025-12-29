@@ -34,6 +34,21 @@ std::shared_ptr<Entity> EntityManager::addEntity(const std::string& tag)
 	return entity;
 }
 
+std::shared_ptr<Entity> EntityManager::getEntity(size_t id)
+{
+    for (const auto& e : m_entities)
+    {
+        if (e->id() == id) return e;
+    }
+
+    for (const auto& e : m_entitiesToAdd)
+    {
+        if (e->id() == id) return e;
+    }
+
+    return nullptr;
+}
+
 const EntityVec& EntityManager::getEntities()
 {
 	return m_entities;

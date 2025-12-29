@@ -57,92 +57,288 @@ void Scene_Poker::update()
 
 	switch (m_state)
 	{
-		case Scene_Poker::State::BUILD:
+	case Scene_Poker::State::TEST:
+		break;
 
-			if (isBuying)
+	case Scene_Poker::State::BUILD:
+
+		if (isBuying)
+		{
+			if (selectTiles())
 			{
-				if (selectTiles()) 
+				if (m_inputManager->MouseButtonReleased(InputManager::MOUSE_BUTTON::left))
 				{
-					if (m_inputManager->MouseButtonPressed(InputManager::MOUSE_BUTTON::left))
-					{
-						createTower();
+					createTower();
 
-						for (int i = 0; i < 4; i++)
+					for (int i = 0; i < 4; i++)
+					{
+						auto cursorEntity = m_entityManager.getEntity(selectorCursor[i]);
+
+						if (cursorEntity)
 						{
-							selectorCursor[i]->getComponent<SpriteComponent>().isActive = false;
+							cursorEntity->getComponent<SpriteComponent>().isActive = false;
 						}
-
-						isBuying = false;
-						m_state = Scene_Poker::State::DEAL;
 					}
+
+					isBuying = false;
+					m_state = Scene_Poker::State::DEAL;
 				}
 			}
+		}
 
-			break;
+		break;
 
-		case Scene_Poker::State::DEAL:
+	case Scene_Poker::State::DEAL:
 
-			if (!dealt)
+		if (dealDelay >= dealTimer)
+		{
+			dealTimer += m_timer->DeltaTime();
+			return;
+		}
+
+
+		if (!dealt)
+		{
+			auto dealBackgroundEntity = m_entityManager.getEntity(dealBackground);
+
+			if (dealBackgroundEntity)
 			{
-				dealBackground->getComponent<SpriteComponent>().isActive = true;
-
-				for (auto& e : refreshButton)
-				{
-					e->getComponent<SpriteComponent>().isActive = true;
-					e->getComponent<ButtonComponent>().isActive = true;
-				}
-
-				acceptButton->getComponent<SpriteComponent>().isActive = true;
-				acceptButton->getComponent<ButtonComponent>().isActive = true;
-
-				dealHand();
-				dealt = true;
+				dealBackgroundEntity->getComponent<SpriteComponent>().isActive = true;
 			}
 
-			if (handresult)
+			for (auto& e : refreshButton)
 			{
-				currentTime -= m_timer->DeltaTime();
-				int elapsedTime = static_cast<int>(currentTime);
-				
-				if (previousTime != elapsedTime)
+				auto buttonEntity = m_entityManager.getEntity(e);
+				if (buttonEntity)
 				{
-					createTimerText(std::to_string(elapsedTime), 50, Vec2(100, 50));
-					previousTime = elapsedTime;
-				}
-				
-				if (currentTime < 0)
-				{
-					handresult = false;
-					dealBackground->getComponent<SpriteComponent>().isActive = false;
-
-					for (auto& e : refreshButton)
-					{
-						e->getComponent<SpriteComponent>().isActive = false;
-						e->getComponent<ButtonComponent>().isActive = false;
-					}
-
-					acceptButton->getComponent<SpriteComponent>().isActive = false;
-					acceptButton->getComponent<ButtonComponent>().isActive = false;
-
-					timerText->getComponent<TextComponent>().isActive = false;
-					handText->getComponent<TextComponent>().isActive = false;
-
-					for (auto& e : m_playerHand)
-					{
-						e->getComponent<CardComponent>().erank->destroy();
-						e->getComponent<CardComponent>().esuit->destroy();
-						e->destroy();
-					}
-
-					m_state = Scene_Poker::State::WAVE;
+					buttonEntity->getComponent<SpriteComponent>().isActive = true;
+					buttonEntity->getComponent<ButtonComponent>().isActive = true;
 				}
 			}
 
-			break;
-		case Scene_Poker::State::WAVE:
-			break;
-		default:
-			break;
+			auto acceptButtonEntity = m_entityManager.getEntity(acceptButton);
+
+			if (acceptButtonEntity)
+			{
+				acceptButtonEntity->getComponent<SpriteComponent>().isActive = true;
+				acceptButtonEntity->getComponent<ButtonComponent>().isActive = true;
+			}
+
+			dealHand();
+			dealt = true;
+		}
+
+		if (handresult)
+		{
+			currentTime -= m_timer->DeltaTime();
+			int elapsedTime = static_cast<int>(currentTime);
+
+			if (previousTime != elapsedTime)
+			{
+				createTimerText(std::to_string(elapsedTime), 50, Vec2(100, 50));
+				previousTime = elapsedTime;
+			}
+
+			if (currentTime < 0)
+			{
+				handresult = false;
+
+				auto dealBackgroundEntity = m_entityManager.getEntity(dealBackground);
+
+				if (dealBackgroundEntity)
+				{
+					dealBackgroundEntity->getComponent<SpriteComponent>().isActive = false;
+				}
+
+				for (EntityID e : refreshButton)
+				{
+					auto buttonEntity = m_entityManager.getEntity(e);
+					if (buttonEntity)
+					{
+						buttonEntity->getComponent<SpriteComponent>().isActive = false;
+						buttonEntity->getComponent<ButtonComponent>().isActive = false;
+					}
+				}
+
+				auto acceptButtonEntity = m_entityManager.getEntity(acceptButton);
+
+				if (acceptButtonEntity)
+				{
+					acceptButtonEntity->getComponent<SpriteComponent>().isActive = false;
+					acceptButtonEntity->getComponent<ButtonComponent>().isActive = false;
+				}
+
+				auto timerTextEntity = m_entityManager.getEntity(timerText);
+
+				if (timerTextEntity)
+				{
+					timerTextEntity->getComponent<TextComponent>().isActive = false;
+				}
+
+				auto handTextEntity = m_entityManager.getEntity(handText);
+				if (handTextEntity)
+				{
+					handTextEntity->getComponent<TextComponent>().isActive = false;
+				}
+
+				for (EntityID e : m_playerHand)
+				{
+					auto entity = m_entityManager.getEntity(e);
+					if (entity)
+					{
+						entity->getComponent<CardComponent>().erank->destroy();
+						entity->getComponent<CardComponent>().esuit->destroy();
+						entity->destroy();
+					}
+				}
+
+				m_state = Scene_Poker::State::WAVE;
+				enemiesPerWave = waves[level].count;
+				enemyHP = waves[level].hp;
+				enemySpeed = waves[level].speed;
+				index = waves[level].index;
+			}
+		}
+		break;
+
+	case Scene_Poker::State::WAVE:
+
+		if (!spawningDone)
+		{
+			if (enemiesSpawned < enemiesPerWave)
+			{
+				if (timeGap <= timer)
+				{
+					auto spawnPointEntity = m_entityManager.getEntity(spawnPoint);
+
+					if (spawnPointEntity)
+					{
+						createEnemy(spawnPointEntity->getComponent<PointComponent>().point, enemyHP, enemySpeed, index);
+						aliveEnemies++;
+					}
+
+					timer = 0.0f;
+					enemiesSpawned++;
+					
+				}
+				else
+				{
+					timer += m_timer->DeltaTime();
+				}
+			}
+			else
+			{
+				spawningDone = true;
+				level++;
+			}
+		}
+		
+
+		for (EntityID it : enemyList)
+		{
+			auto enemyEntity = m_entityManager.getEntity(it);
+
+			if (enemyEntity)
+			{
+				auto& transform = enemyEntity->getComponent<TransformComponent>().position;
+				auto& enemyComp = enemyEntity->getComponent<EnemyComponent>();
+				Vec2 midPos = sPoker.midPos(enemyEntity, transform);
+				auto waypointEntity = m_entityManager.getEntity(waypoints[enemyComp.waypointIndex]);
+				
+				if (waypointEntity)
+				{
+					const Vec2& currentWaypoint = waypointEntity->getComponent<PointComponent>().point;
+
+					Vec2 toTarget = currentWaypoint - midPos;
+
+					if (toTarget.MagnitudeSqr() > 0.1f)
+					{
+						Vec2 direction = toTarget.Normalize();
+						transform += direction * enemyComp.speed;
+
+						updateEnemiesInRange(enemyEntity);
+					}
+					else
+					{
+						if (enemyComp.waypointIndex++ == 12)
+						{
+							enemyList.erase(std::remove(enemyList.begin(), enemyList.end(), enemyEntity->id()), enemyList.end());
+							enemyEntity->destroy();
+							//subtract lives
+
+							aliveEnemies--;
+						}
+					}
+				}
+
+				if (enemyComp.hp <= 0)
+				{
+					enemyList.erase(std::remove(enemyList.begin(), enemyList.end(), enemyEntity->id()), enemyList.end());
+					enemyEntity->destroy();
+					aliveEnemies--;
+				}
+			}
+		}
+		
+		for (EntityID tower : towerList)
+		{
+			auto towerEntity = m_entityManager.getEntity(tower);
+			
+			if (towerEntity)
+			{
+				towerAttack(towerEntity);
+			}
+		}
+
+		for (EntityID projectile : projectiles)
+		{
+			auto projectileEntity = m_entityManager.getEntity(projectile);
+			
+			if (projectileEntity)
+			{
+				auto& transform = projectileEntity->getComponent<TransformComponent>().position;
+				auto& projectileComb = projectileEntity->getComponent<ProjectileComponent>();
+				auto& targetTransform = projectileComb.target->getComponent<TransformComponent>().position;
+
+				Vec2 midPos = sPoker.midPos(projectileEntity, transform);
+				Vec2 targetMidPos = sPoker.midPos(projectileComb.target, targetTransform);
+
+				float dx = targetMidPos.x - midPos.x;
+				float dy = targetMidPos.y - midPos.y;
+
+				float distsqr = dx * dx + dy * dy;
+				float hitRadiusSq = 10.0f;
+
+				if (distsqr <= hitRadiusSq)
+				{
+					projectileComb.target->getComponent<EnemyComponent>().hp -= projectileComb.damage;
+					projectileEntity->destroy();
+				}
+				else
+				{
+					float dist = std::sqrt(distsqr);
+					float moveX = (dx / dist) * projectileComb.speed;
+					float moveY = (dy / dist) * projectileComb.speed;
+					transform.x += moveX;
+					transform.y += moveY;
+				}
+
+				if (!projectileComb.target->isActive())
+				{
+					projectileEntity->destroy();
+				}
+			}
+		}
+
+		if (spawningDone && aliveEnemies == 0)
+		{
+			m_state = Scene_Poker::State::BUILD;
+			resetLoop();
+		}
+
+		break;
+	default:
+		break;
 	}
 
 	for (auto& e : m_entityManager.getEntities())
@@ -199,6 +395,11 @@ void Scene_Poker::init()
 	std::srand(std::time(nullptr));
 
 	createUI();
+	createWaypoint();
+
+	loadWaveData();
+
+	m_state = Scene_Poker::State::BUILD;
 }
 
 void Scene_Poker::onEnd()
@@ -223,45 +424,69 @@ void Scene_Poker::sUICollision(std::shared_ptr<Entity> object)
 		}
 	}
 
-	if (buyTowerButton->getComponent<ButtonComponent>().isClicked)
+	auto buyTowerButtonEntity = m_entityManager.getEntity(buyTowerButton);
+
+	if(buyTowerButtonEntity)
 	{
-		isBuying = true;
-		for (int i = 0; i < 4; i++)
+		if (buyTowerButtonEntity->getComponent<ButtonComponent>().isClicked)
 		{
-			selectorCursor[i]->getComponent<SpriteComponent>().isActive = true;
+			isBuying = true;
+			for (int i = 0; i < 4; i++)
+			{
+				auto selectorEntity = m_entityManager.getEntity(selectorCursor[i]);
+				if (selectorEntity)
+				{
+					selectorEntity->getComponent<SpriteComponent>().isActive = true;
+				}
+			}
+
+			buyTowerButtonEntity->getComponent<ButtonComponent>().isClicked = false;
+			buyTowerButtonEntity->getComponent<ButtonComponent>().isActive = false;
 		}
-		
-		buyTowerButton->getComponent<ButtonComponent>().isClicked = false;
-		buyTowerButton->getComponent<ButtonComponent>().isActive = false;
 	}
+	
 
 	int index = 0;
 
-	for (auto& e : refreshButton)
+	for (EntityID e : refreshButton)
 	{
-		if (e->getComponent<ButtonComponent>().isClicked)
+		auto refreshButtonEntity = m_entityManager.getEntity(e);
+		if (refreshButtonEntity)
 		{
-			changeCard(m_playerHand, index);
-			e->getComponent<ButtonComponent>().isClicked = false;
-			e->getComponent<ButtonComponent>().isActive = false;
-			e->getComponent<SpriteComponent>().srcRect.x = 150;
+			if (refreshButtonEntity->getComponent<ButtonComponent>().isClicked)
+			{
+				auto m_playerHandEntity = m_entityManager.getEntity(m_playerHand[index]);
+				changeCard(m_playerHandEntity, index);
+				refreshButtonEntity->getComponent<ButtonComponent>().isClicked = false;
+				refreshButtonEntity->getComponent<ButtonComponent>().isActive = false;
+				refreshButtonEntity->getComponent<SpriteComponent>().srcRect.x = 150;
+			}
+			index++;
 		}
-		index++;
 	}
 
-	if (acceptButton->getComponent<ButtonComponent>().isClicked)
+	auto acceptButtonEntity = m_entityManager.getEntity(acceptButton);
+	if (acceptButtonEntity)
 	{
-		acceptButton->getComponent<ButtonComponent>().isClicked = false;
-		acceptButton->getComponent<ButtonComponent>().isActive = false;
-
-		for (auto& e : refreshButton)
+		if (acceptButtonEntity->getComponent<ButtonComponent>().isClicked)
 		{
-			e->getComponent<ButtonComponent>().isClicked = false;
-			e->getComponent<ButtonComponent>().isActive = false;
-			e->getComponent<SpriteComponent>().srcRect.x = 150;
-		}
+			acceptButtonEntity->getComponent<ButtonComponent>().isClicked = false;
+			acceptButtonEntity->getComponent<ButtonComponent>().isActive = false;
 
-		handResult();
+			for (EntityID e : refreshButton)
+			{
+				auto refreshButtonEntity = m_entityManager.getEntity(e);
+				if (refreshButtonEntity)
+				{
+					refreshButtonEntity->getComponent<ButtonComponent>().isClicked = false;
+					refreshButtonEntity->getComponent<ButtonComponent>().isActive = false;
+					refreshButtonEntity->getComponent<SpriteComponent>().srcRect.x = 150;
+				}
+				
+			}
+
+			handResult();
+		}
 	}
 }
 
@@ -273,7 +498,7 @@ void Scene_Poker::addTile(int x, int y, std::shared_ptr<Entity> tile)
 		if (grid[y].size() <= x) grid[y].resize(x + 1);
 
 		
-		grid[y][x] = GridCell(tile);
+		grid[y][x] = GridCell(tile->id());
 
 		if (tile->getComponent<SpriteComponent>().textureName == "dirt.png")
 		{
@@ -304,166 +529,176 @@ bool Scene_Poker::selectTiles()
 
 	if (mouseGridPos.x >= 0 && mouseGridPos.x <= 43 && mouseGridPos.y >= 0 && mouseGridPos.y <= 39)
 	{
+		auto selectorCursorEntity = m_entityManager.getEntity(selectorCursor[0]);
+		auto selectorCursorEntity1 = m_entityManager.getEntity(selectorCursor[1]);
+		auto selectorCursorEntity2 = m_entityManager.getEntity(selectorCursor[2]);
+		auto selectorCursorEntity3 = m_entityManager.getEntity(selectorCursor[3]);
 
-		// Original Mouse Position
-		selectorCursor[0]->getComponent<TransformComponent>().position = mouseGridPos * 24;
+		if (selectorCursorEntity && selectorCursorEntity1 && selectorCursorEntity2 && selectorCursorEntity3)
+		{
+			// Original Mouse Position
+			selectorCursorEntity->getComponent<TransformComponent>().position = mouseGridPos * 24;
 
-		if (mouseX < 12)
-		{
-			if (mouseGridPos.x == 0)
+			if (mouseX < 12)
 			{
-				selectorCursor[1]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, 0);
+				if (mouseGridPos.x == 0)
+				{
+					selectorCursorEntity1->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, 0);
+				}
+				else
+				{
+					selectorCursorEntity1->getComponent<TransformComponent>().position = (mouseGridPos * 24) - Vec2(24, 0);
+				}
 			}
-			else
+			if (mouseY < 12)
 			{
-				selectorCursor[1]->getComponent<TransformComponent>().position = (mouseGridPos * 24) - Vec2(24, 0);
+				if (mouseGridPos.y == 0)
+				{
+					selectorCursorEntity2->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(0, 24);
+				}
+				else
+				{
+					selectorCursorEntity2->getComponent<TransformComponent>().position = (mouseGridPos * 24) - Vec2(0, 24);
+				}
 			}
-		}
-		if (mouseY < 12)
-		{
-			if (mouseGridPos.y == 0)
+			if (mouseX > 12)
 			{
-				selectorCursor[2]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(0, 24);
+				if (mouseGridPos.x == 43)
+				{
+					selectorCursorEntity1->getComponent<TransformComponent>().position = (mouseGridPos * 24) - Vec2(24, 0);
+				}
+				else
+				{
+					selectorCursorEntity1->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, 0);
+				}
 			}
-			else
+			if (mouseY > 12)
 			{
-				selectorCursor[2]->getComponent<TransformComponent>().position = (mouseGridPos * 24) - Vec2(0, 24);
+				if (mouseGridPos.y == 39)
+				{
+					selectorCursorEntity2->getComponent<TransformComponent>().position = (mouseGridPos * 24) - Vec2(0, 24);
+				}
+				else
+				{
+					selectorCursorEntity2->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(0, 24);
+				}
 			}
-		}
-		if (mouseX > 12)
-		{
-			if (mouseGridPos.x == 43)
-			{
-				selectorCursor[1]->getComponent<TransformComponent>().position = (mouseGridPos * 24) - Vec2(24, 0);
-			}
-			else
-			{
-				selectorCursor[1]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, 0);
-			}
-		}
-		if (mouseY > 12)
-		{
-			if (mouseGridPos.y == 39)
-			{
-				selectorCursor[2]->getComponent<TransformComponent>().position = (mouseGridPos * 24) - Vec2(0, 24);
-			}
-			else
-			{
-				selectorCursor[2]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(0, 24);
-			}
-		}
 
-		if (mouseX < 12 && mouseY < 12)
-		{
-			if (mouseGridPos.x == 0 && mouseGridPos.y != 0)
+			if (mouseX < 12 && mouseY < 12)
 			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, -24);
+				if (mouseGridPos.x == 0 && mouseGridPos.y != 0)
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, -24);
+				}
+				else if (mouseGridPos.x == 0 && mouseGridPos.y == 0)
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, 24);
+				}
+				else if (mouseGridPos.x != 0 && mouseGridPos.y == 0)
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(-24, 24);
+				}
+				else
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) - Vec2(24, 24);
+				}
 			}
-			else if (mouseGridPos.x == 0 && mouseGridPos.y == 0)
+			if (mouseX > 12 && mouseY < 12)
 			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, 24);
+				if (mouseGridPos.x == 0 && mouseGridPos.y == 0)
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, 24);
+				}
+				else if (mouseGridPos.x != 0 && mouseGridPos.x != 43 && mouseGridPos.y == 0)
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, 24);
+				}
+				else if (mouseGridPos.x == 43 && mouseGridPos.y != 0)
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(-24, -24);
+				}
+				else if (mouseGridPos.x == 43 && mouseGridPos.y == 0)
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(-24, 24);
+				}
+				else
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, -24);
+				}
 			}
-			else if (mouseGridPos.x != 0 && mouseGridPos.y == 0)
+			if (mouseX < 12 && mouseY > 12)
 			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(-24, 24);
+				if (mouseGridPos.x == 0 && mouseGridPos.y != 39)
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, 24);
+				}
+				else if (mouseGridPos.x == 0 && mouseGridPos.y == 39)
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, -24);
+				}
+				else if (mouseGridPos.x != 0 && mouseGridPos.x != 43 && mouseGridPos.y == 39)
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(-24, -24);
+				}
+				else if (mouseGridPos.x != 0 && mouseGridPos.x == 43 && mouseGridPos.y == 39)
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(-24, -24);
+				}
+				else
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(-24, 24);
+				}
 			}
-			else
+			if (mouseX > 12 && mouseY > 12)
 			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) - Vec2(24, 24);
+				if (mouseGridPos.x == 43 && mouseGridPos.y == 0)
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(-24, 24);
+				}
+				else if (mouseGridPos.x == 0 && mouseGridPos.y == 39)
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, -24);
+				}
+				else if (mouseGridPos.x == 43 && mouseGridPos.y != 0 && mouseGridPos.y != 39)
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(-24, 24);
+				}
+				else if (mouseGridPos.x == 43 && mouseGridPos.y == 39)
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(-24, -24);
+				}
+				else if (mouseGridPos.x != 43 && mouseGridPos.x != 0 && mouseGridPos.y == 39)
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, -24);
+				}
+				else
+				{
+					selectorCursorEntity3->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, 24);
+				}
 			}
-		}
-		if (mouseX > 12 && mouseY < 12)
-		{
-			if (mouseGridPos.x == 0 && mouseGridPos.y == 0)
-			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, 24);
-			}
-			else if (mouseGridPos.x != 0 && mouseGridPos.x != 43 && mouseGridPos.y == 0)
-			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, 24);
-			}
-			else if (mouseGridPos.x == 43 && mouseGridPos.y != 0)
-			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(-24, -24);
-			}
-			else if (mouseGridPos.x == 43 && mouseGridPos.y == 0)
-			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(-24, 24);
-			}
-			else
-			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, -24);
-			}
-		}
-		if (mouseX < 12 && mouseY > 12)
-		{
-			if (mouseGridPos.x == 0 && mouseGridPos.y != 39)
-			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, 24);
-			}
-			else if (mouseGridPos.x == 0 && mouseGridPos.y == 39)
-			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, -24);
-			}
-			else if (mouseGridPos.x != 0 && mouseGridPos.x != 43 && mouseGridPos.y == 39)
-			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(-24, -24);
-			}
-			else if (mouseGridPos.x != 0 && mouseGridPos.x == 43 && mouseGridPos.y == 39)
-			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(-24, -24);
-			}
-			else
-			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(-24, 24);
-			}
-		}
-		if (mouseX > 12 && mouseY > 12)
-		{
-			if (mouseGridPos.x == 43 && mouseGridPos.y == 0)
-			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(-24, 24);
-			}
-			else if (mouseGridPos.x == 0 && mouseGridPos.y == 39)
-			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, -24);
-			}
-			else if (mouseGridPos.x == 43 && mouseGridPos.y != 0 && mouseGridPos.y != 39)
-			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(-24, 24);
-			}
-			else if (mouseGridPos.x == 43 && mouseGridPos.y == 39)
-			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(-24, -24);
-			}
-			else if (mouseGridPos.x != 43 && mouseGridPos.x != 0 && mouseGridPos.y == 39)
-			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, -24);
-			}
-			else
-			{
-				selectorCursor[3]->getComponent<TransformComponent>().position = (mouseGridPos * 24) + Vec2(24, 24);
-			}
-		}
-
-		int index = 0;
-
-		for (std::shared_ptr<Entity> e : selectorCursor)
-		{
-			if (!grid[e->getComponent<TransformComponent>().position.y / 24][e->getComponent<TransformComponent>().position.x / 24].buildable)
-			{
-				e->getComponent<SpriteComponent>().srcRect.x = 32;
-				cursors[index] = false;
-			}
-			else
-			{
-				e->getComponent<SpriteComponent>().srcRect.x = 0;
-				cursors[index] = true;
-				cursorlocation[index] = e->getComponent<TransformComponent>().position;
-			}
-			index++;
 		}
 		
+		int index = 0;
+
+		for (EntityID e : selectorCursor)
+		{
+			auto entity = m_entityManager.getEntity(e);
+			if (entity)
+			{
+				if (!grid[entity->getComponent<TransformComponent>().position.y / 24][entity->getComponent<TransformComponent>().position.x / 24].buildable)
+				{
+					entity->getComponent<SpriteComponent>().srcRect.x = 32;
+					cursors[index] = false;
+				}
+				else
+				{
+					entity->getComponent<SpriteComponent>().srcRect.x = 0;
+					cursors[index] = true;
+					cursorlocation[index] = entity->getComponent<TransformComponent>().position;
+				}
+				index++;
+			}
+		}
 	}
 
 	for (bool val : cursors)
@@ -481,11 +716,13 @@ void Scene_Poker::createUI()
 {
 	createBackground();
 
-	buyTowerButton = m_entityManager.addEntity("Button");
-	buyTowerButton->addComponent<TransformComponent>(Vec2(1068, 856), Vec2(0, 0), 0);
-	buyTowerButton->addComponent<SpriteComponent>("buybutton.png", 200, 100, 1, false);
-	buyTowerButton->addComponent<ButtonComponent>();
-	buyTowerButton->getComponent<ButtonComponent>().isActive = true;
+	auto button = m_entityManager.addEntity("Button");
+	button->addComponent<TransformComponent>(Vec2(1068, 856), Vec2(0, 0), 0);
+	button->addComponent<SpriteComponent>("buybutton.png", 200, 100, 1, false);
+	button->addComponent<ButtonComponent>();
+	button->getComponent<ButtonComponent>().isActive = true;
+
+	buyTowerButton = button->id();
 
 	createCursor();
 	createDealBackground();
@@ -534,20 +771,22 @@ void Scene_Poker::createBackground()
 
 void Scene_Poker::createDealBackground()
 {
-	dealBackground = m_entityManager.addEntity("DealBackground");
-	dealBackground->addComponent<TransformComponent>(Vec2(0, 0), Vec2(0, 0), 0);
-	dealBackground->addComponent<SpriteComponent>("dealbackground.png", 1280, 700, 1, false);
-	dealBackground->getComponent<SpriteComponent>().isActive = false;
+	auto dback = m_entityManager.addEntity("DealBackground");
+	dback->addComponent<TransformComponent>(Vec2(0, 0), Vec2(0, 0), 0);
+	dback->addComponent<SpriteComponent>("dealbackground.png", 1280, 700, 1, false);
+	dback->getComponent<SpriteComponent>().isActive = false;
+	dealBackground = dback->id();
 }
 
 void Scene_Poker::createCursor()
 {
 	for (int i = 0; i < 4; i++)
 	{
-		selectorCursor[i] = m_entityManager.addEntity("SelectorCursor");
-		selectorCursor[i]->addComponent<TransformComponent>(Vec2(0, 0), Vec2(0, 0), 0);
-		selectorCursor[i]->addComponent<SpriteComponent>("selector.png", 32, 32, 0.75, false);
-		selectorCursor[i]->getComponent<SpriteComponent>().isActive = false;
+		auto cursor = m_entityManager.addEntity("SelectorCursor");
+		cursor->addComponent<TransformComponent>(Vec2(0, 0), Vec2(0, 0), 0);
+		cursor->addComponent<SpriteComponent>("selector.png", 32, 32, 0.75, false);
+		cursor->getComponent<SpriteComponent>().isActive = false;
+		selectorCursor[i] = cursor->id();
 	}
 }
 
@@ -555,23 +794,44 @@ void Scene_Poker::createRefreshButton()
 {
 	for (int i = 0; i < 5; i++)
 	{
-		refreshButton[i] = m_entityManager.addEntity("Button");
-		refreshButton[i]->addComponent<SpriteComponent>("refresh.png", 150, 64, 1, false);
-		refreshButton[i]->addComponent<TransformComponent>(Vec2(115 + (i * 225), 575), Vec2(0, 0), 0);
-		refreshButton[i]->addComponent<ButtonComponent>();
-		refreshButton[i]->getComponent<ButtonComponent>().isActive = false;
-		refreshButton[i]->getComponent<SpriteComponent>().isActive = false;
+		auto button = m_entityManager.addEntity("Button");
+		button->addComponent<SpriteComponent>("refresh.png", 150, 64, 1, false);
+		button->addComponent<TransformComponent>(Vec2(115 + (i * 225), 575), Vec2(0, 0), 0);
+		button->addComponent<ButtonComponent>();
+		button->getComponent<ButtonComponent>().isActive = false;
+		button->getComponent<SpriteComponent>().isActive = false;
+		refreshButton[i] = button->id();
 	}
 }
 
 void Scene_Poker::createAcceptButton()
 {
-	acceptButton = m_entityManager.addEntity("Button");
-	acceptButton->addComponent<SpriteComponent>("accept.png", 100, 100, 1, false);
-	acceptButton->addComponent<TransformComponent>(Vec2(1150, 30), Vec2(0, 0), 0);
-	acceptButton->addComponent<ButtonComponent>();
-	acceptButton->getComponent<ButtonComponent>().isActive = false;
-	acceptButton->getComponent<SpriteComponent>().isActive = false;
+	auto button = m_entityManager.addEntity("Button");
+	button->addComponent<SpriteComponent>("accept.png", 100, 100, 1, false);
+	button->addComponent<TransformComponent>(Vec2(1150, 30), Vec2(0, 0), 0);
+	button->addComponent<ButtonComponent>();
+	button->getComponent<ButtonComponent>().isActive = false;
+	button->getComponent<SpriteComponent>().isActive = false;
+	acceptButton = button->id();
+}
+
+void Scene_Poker::loadWaveData()
+{
+	std::ifstream myfile("Wave.txt");
+	if (myfile.is_open())
+	{
+		std::string line;
+
+		while (std::getline(myfile, line))
+		{
+			WaveData w;
+			char comma;
+
+			std::istringstream iss(line);
+			if (iss >> w.count >> comma >> w.hp >> comma >> w.speed >> comma >> w.index)
+				waves.push_back(w);
+		}
+	}
 }
 
 void Scene_Poker::createTower()
@@ -587,45 +847,52 @@ void Scene_Poker::createTower()
 			LowestPosition = cursorlocation[i];
 		}
 		grid[cursorlocation[i].y / 24][cursorlocation[i].x / 24].buildable = false;
-		grid[cursorlocation[i].y / 24][cursorlocation[i].x / 24].cell = tower;
+		grid[cursorlocation[i].y / 24][cursorlocation[i].x / 24].cell = tower->id();
 	}
 
 	tower->addComponent<TransformComponent>(LowestPosition, Vec2(0, 0), 0);
 	tower->addComponent<SpriteComponent>("tower.png", 48, 48, 1, false);
 	tower->getComponent<SpriteComponent>().isActive = true;
 
-	towerList.push_back(tower);
-
-	/*tower->addComponent<TowerComponent>();
-	tower->getComponent<TowerComponent>().level = 1;
-	tower->getComponent<TowerComponent>().damage = 10;
-	tower->getComponent<TowerComponent>().range = 100;
-	tower->getComponent<TowerComponent>().attackSpeed = 1.0f;
-	tower->getComponent<TowerComponent>().cost = 100;
-	*/
+	towerList.push_back(tower->id());
 }
 
 void Scene_Poker::dealHand()
 {
 	for (int i = 0; i < 5; i++)
 	{
-		m_playerHand[i] = m_entityManager.addEntity("Card");
+		auto card = m_entityManager.addEntity("Card");
+
+		m_playerHand[i] = card->id();
+
 		int randrank = 0 + std::rand() % (7 - 0 + 1);
 		CardComponent::Rank rank = static_cast<CardComponent::Rank>(randrank);
 		int randsuit = 0 + std::rand() % (2 - 0 + 1);
 		CardComponent::Suit suit = static_cast<CardComponent::Suit>(randsuit);
-		m_playerHand[i]->addComponent<CardComponent>(rank, suit);
-		m_playerHand[i]->addComponent<SpriteComponent>("card.png", 100, 175, 2, false);
-		m_playerHand[i]->addComponent<TransformComponent>(Vec2(90+(i*225), 200), Vec2(0, 0), 0);
-		createface(m_playerHand[i]);
+		card->addComponent<CardComponent>(rank, suit);
+		card->addComponent<SpriteComponent>("card.png", 100, 175, 2, false);
+		card->addComponent<TransformComponent>(Vec2(90+(i*225), 200), Vec2(0, 0), 0);
+		createface(card);
 	}
 }
 
 void Scene_Poker::clearHand()
 {
-	for (int i = 0; i < 5; i++)
+	for (EntityID e : m_playerHand)
 	{
-		m_playerHand[i]->destroy();
+		auto entity = m_entityManager.getEntity(e);
+		if (entity)
+		{
+			entity->destroy();
+		}
+	}
+
+	for (auto& e : m_sortHand)
+	{
+		if (e->isActive())
+		{
+			e->destroy();
+		}
 	}
 }
 
@@ -633,10 +900,14 @@ void Scene_Poker::handResult()
 {
 	int index = 0;
 
-	for (auto& e : m_playerHand)
+	for (EntityID e : m_playerHand)
 	{
-		m_sortHand[index] = e;
-		index++;
+		auto entity = m_entityManager.getEntity(e);
+		if (entity)
+		{
+			m_sortHand[index] = entity;
+			index++;
+		}
 	}
 
 	sPoker.sortHand(m_sortHand);
@@ -682,19 +953,24 @@ void Scene_Poker::handResult()
 	}
 
 	createHandText("Your hand is a " + result.first + " and " + resultString, 50, Vec2(100, 100));
-	setTowerStats(result.second, highCard, towerList.back());
+
+	auto towerEntity = m_entityManager.getEntity(towerList.back());
+	if (towerEntity)
+	{
+		setTowerStats(result.second, highCard, towerEntity);
+	}
 	handresult = true;
 }
 
-void Scene_Poker::changeCard(std::shared_ptr<Entity>* card, int selection)
+void Scene_Poker::changeCard(std::shared_ptr<Entity> card, int selection)
 {
 	int randrank = 0 + std::rand() % (7 - 0 + 1);
 	CardComponent::Rank newrank = static_cast<CardComponent::Rank>(randrank);
 	int randsuit = 0 + std::rand() % (2 - 0 + 1);
 	CardComponent::Suit newsuit = static_cast<CardComponent::Suit>(randsuit);
-	card[selection]->getComponent<CardComponent>().rank = newrank;
-	card[selection]->getComponent<CardComponent>().suit = newsuit;
-	createface(card[selection]);
+	card->getComponent<CardComponent>().rank = newrank;
+	card->getComponent<CardComponent>().suit = newsuit;
+	createface(card);
 }
 
 void Scene_Poker::createface(std::shared_ptr<Entity> card)
@@ -760,27 +1036,187 @@ void Scene_Poker::createface(std::shared_ptr<Entity> card)
 
 void Scene_Poker::createHandText(std::string s, int size, Vec2 pos)
 {
-	if (handText)
+	auto handTextEntity = m_entityManager.getEntity(handText);
+
+	if (handTextEntity)
 	{
-		handText->destroy();
+		handTextEntity->destroy();
 	}
-	handText = m_entityManager.addEntity("Text");
-	handText->addComponent<TextComponent>(s, "Snes.ttf", size, 700, 300, 1, SDL_Color{ 255, 255, 255 });
-	handText->addComponent<TransformComponent>(pos, Vec2(0, 0), 0);
+	handTextEntity = m_entityManager.addEntity("Text");
+	handTextEntity->addComponent<TextComponent>(s, "Snes.ttf", size, 700, 300, 1, SDL_Color{ 255, 255, 255 });
+	handTextEntity->addComponent<TransformComponent>(pos, Vec2(0, 0), 0);
+	handText = handTextEntity->id();
 }
 
 void Scene_Poker::createTimerText(std::string s, int size, Vec2 pos)
 {
-	if (timerText)
+	auto timerTextEntity = m_entityManager.getEntity(timerText);
+
+	if (timerTextEntity)
 	{
-		timerText->destroy();
+		timerTextEntity->destroy();
 	}
-	timerText = m_entityManager.addEntity("Text");
-	timerText->addComponent<TextComponent>(s, "Snes.ttf", size, 700, 300, 1, SDL_Color{ 255, 255, 255 });
-	timerText->addComponent<TransformComponent>(pos, Vec2(0, 0), 0);
+	timerTextEntity = m_entityManager.addEntity("Text");
+	timerTextEntity->addComponent<TextComponent>(s, "Snes.ttf", size, 700, 300, 1, SDL_Color{ 255, 255, 255 });
+	timerTextEntity->addComponent<TransformComponent>(pos, Vec2(0, 0), 0);
+	timerText = timerTextEntity->id();
 }
 
 void Scene_Poker::setTowerStats(int hand, int high, std::shared_ptr<Entity> tower)
 {
-	tower->addComponent<TowerComponent>(hand, high, 4, 0.33f);
+	tower->addComponent<TowerComponent>(hand, high, 128, 0.4f);
+}
+
+EntityID Scene_Poker::createPoints(Vec2 p)
+{
+	auto point = m_entityManager.addEntity("point");
+	point->addComponent<PointComponent>(p);
+	return point->id();
+	return 0;
+}
+
+void Scene_Poker::createWaypoint()
+{
+	spawnPoint = createPoints(Vec2(370, -50));
+	waypoints.push_back(createPoints(Vec2(384, 840)));
+	waypoints.push_back(createPoints(Vec2(98, 840)));
+	waypoints.push_back(createPoints(Vec2(98, 550)));
+	waypoints.push_back(createPoints(Vec2(960, 550)));
+	waypoints.push_back(createPoints(Vec2(960, 840)));
+	waypoints.push_back(createPoints(Vec2(676, 840)));
+	waypoints.push_back(createPoints(Vec2(676, 120)));
+	waypoints.push_back(createPoints(Vec2(960, 120)));
+	waypoints.push_back(createPoints(Vec2(960, 406)));
+	waypoints.push_back(createPoints(Vec2(98, 406)));
+	waypoints.push_back(createPoints(Vec2(98, 120)));
+	waypoints.push_back(createPoints(Vec2(530, 120)));
+	waypoints.push_back(createPoints(Vec2(530, 1000)));
+}
+
+void Scene_Poker::createEnemy(Vec2 p, int hp, int speed, int index)
+{
+	auto enemy = m_entityManager.addEntity("Enemy");
+	enemy->addComponent<TransformComponent>(p, Vec2(0, 0), 0);
+	enemy->addComponent<SpriteComponent>("enemy.png", 32, 32, 1, false);
+	enemy->getComponent<SpriteComponent>().isActive = true;
+	enemy->addComponent<EnemyComponent>(hp, speed, index);
+	enemyList.push_back(enemy->id());
+}
+
+void Scene_Poker::createProjectile(Vec2 p, int damage, std::shared_ptr<Entity> target, int speed)
+{
+	auto projectile = m_entityManager.addEntity("Projectile");
+	projectile->addComponent<TransformComponent>(p, Vec2(0, 0), 0);
+	projectile->addComponent<SpriteComponent>("projectile.png", 16, 16, 1, false);
+	projectile->getComponent<SpriteComponent>().isActive = true;
+	projectile->addComponent<ProjectileComponent>(damage, target, speed);
+	projectiles.push_back(projectile->id());	
+}
+
+void Scene_Poker::updateEnemiesInRange(std::shared_ptr<Entity> enemy)
+{
+	for (auto t : towerList)
+	{
+		auto tower = m_entityManager.getEntity(t);
+		if (tower)
+		{
+			float dx = enemy->getComponent<TransformComponent>().position.x - tower->getComponent<TransformComponent>().position.x;
+			float dy = enemy->getComponent<TransformComponent>().position.y - tower->getComponent<TransformComponent>().position.y;
+			float distSq = dx * dx + dy * dy;
+			float rangeSq = tower->getComponent<TowerComponent>().range * tower->getComponent<TowerComponent>().range;
+
+			bool inRange = false;
+
+			if (distSq <= rangeSq)
+			{
+				inRange = true;
+			}
+			
+			if (inRange)
+			{
+				if (std::find(tower->getComponent<TowerComponent>().enemiesIDInRange.begin(), tower->getComponent<TowerComponent>().enemiesIDInRange.end(), enemy->id()) != tower->getComponent<TowerComponent>().enemiesIDInRange.end())
+				{
+
+				}
+				else
+				{
+					tower->getComponent<TowerComponent>().enemiesIDInRange.push_back(enemy->id());
+				}
+			}
+			else
+			{
+				tower->getComponent<TowerComponent>().enemiesIDInRange.erase(std::remove(tower->getComponent<TowerComponent>().enemiesIDInRange.begin(), tower->getComponent<TowerComponent>().enemiesIDInRange.end(), enemy->id()), tower->getComponent<TowerComponent>().enemiesIDInRange.end());
+			}
+		}
+	}
+}
+
+void Scene_Poker::towerAttack(std::shared_ptr<Entity> tower)
+{
+	auto& towerComp = tower->getComponent<TowerComponent>();
+
+	if (towerComp.attackSpeed <= towerComp.attackTimer)
+	{
+		if (!towerComp.enemiesIDInRange.empty())
+		{
+			auto enemy = m_entityManager.getEntity(towerComp.enemiesIDInRange.front());
+
+			if (enemy)
+			{
+				if (!enemy->isActive())
+				{
+					towerComp.enemiesIDInRange.erase(towerComp.enemiesIDInRange.begin());
+				}
+
+				Vec2 midPos = tower->getComponent<TransformComponent>().position - Vec2(16, 16);
+				createProjectile(sPoker.midPos(tower, midPos), towerComp.damage, enemy, 5);
+				towerComp.attackTimer = 0.0f;
+			}
+			else
+			{
+				towerComp.enemiesIDInRange.erase(towerComp.enemiesIDInRange.begin());
+			}
+		}
+	}
+	else
+	{
+		towerComp.attackTimer += m_timer->DeltaTime();
+	}
+}
+
+void Scene_Poker::resetLoop()
+{
+	auto buyTowerButtonEntity = m_entityManager.getEntity(buyTowerButton);
+
+	if (buyTowerButtonEntity)
+	{
+		buyTowerButtonEntity->getComponent<ButtonComponent>().isActive = true;
+	}
+
+	for (EntityID e : refreshButton)
+	{
+		auto buttonEntity = m_entityManager.getEntity(e);
+		if (buttonEntity)
+		{
+			buttonEntity->getComponent<ButtonComponent>().isActive = false;
+			buttonEntity->getComponent<SpriteComponent>().srcRect.x = 0;
+		}
+	}
+
+	auto acceptButtonEntity = m_entityManager.getEntity(acceptButton);
+
+	if (acceptButtonEntity)
+	{
+		acceptButtonEntity->getComponent<ButtonComponent>().isActive = false;
+		acceptButtonEntity->getComponent<SpriteComponent>().srcRect.x = 0;
+	}
+
+	dealt = false;
+	clearHand();
+	handresult = false;
+	dealTimer = 0;
+	previousTime = 0;
+	currentTime = 5.0f;
+	spawningDone = false;
+	enemiesSpawned = 0;
 }

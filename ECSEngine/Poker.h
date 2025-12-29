@@ -11,6 +11,8 @@ public:
 	std::pair<std::string, int> checkHand(std::shared_ptr<Entity> hand[]);
 	int checkHighCard(std::shared_ptr<Entity> hand[], int handtype);
 
+	Vec2 midPos(std::shared_ptr<Entity> a, Vec2& pos);
+
 private:
 	
 	bool isFiveOfAKind(std::shared_ptr<Entity> hand[]);

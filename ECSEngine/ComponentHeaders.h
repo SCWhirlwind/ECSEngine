@@ -16,3 +16,6 @@
 #include "ButtonComponent.h"
 
 #include "TowerComponent.h"
+#include "PointComponent.h"
+#include "EnemyComponent.h"
+#include "ProjectileComponent.h"

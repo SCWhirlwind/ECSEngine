@@ -51,7 +51,7 @@ Vec2 Physics::midPos(std::shared_ptr<Entity> a, Vec2& pos)
 {
     if (a->hasComponent<SpriteComponent>())
     {
-        Vec2 size = Vec2(0,0);
+        Vec2 size = Vec2(0, 0);
         size.x = a->getComponent<SpriteComponent>().width * a->getComponent<SpriteComponent>().scale;
         size.y = a->getComponent<SpriteComponent>().height * a->getComponent<SpriteComponent>().scale;
 

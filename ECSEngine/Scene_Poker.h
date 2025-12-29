@@ -4,6 +4,8 @@
 #include "Poker.h"
 #include "Physics.h"
 
+using EntityID = int;
+
 class Scene_Poker : public Scene
 {
 
@@ -26,48 +28,81 @@ private:
 
 	float elapseTime = 0;
 
-	enum class State { BUILD, DEAL, WAVE };
+	enum class State { TEST, BUILD, DEAL, WAVE };
 
 	struct GridCell
 	{
-		std::shared_ptr<Entity> cell;
+		EntityID cell;
 
 		bool buildable = false;
 
-		GridCell() :  cell(nullptr) {};
-		GridCell(std::shared_ptr<Entity> ent) : cell(ent) {};
+		GridCell() :  cell(0) {};
+		GridCell(EntityID entid) : cell(entid) {};
 	};
+
+	struct WaveData
+	{
+		int count;
+		int hp;
+		int speed;
+		int index;
+	};
+
+	std::vector<WaveData> waves;
 
 	std::vector<std::vector<GridCell>> grid;
 
 	State m_state = State::BUILD;
 
-	std::vector<std::shared_ptr<Entity>> towerList;
+	std::vector<EntityID> towerList;
 
-	std::shared_ptr<Entity> m_playerHand[5];
+	EntityID m_playerHand[5];
 	std::shared_ptr<Entity> m_sortHand[5];
 	Poker sPoker;
 
-	std::shared_ptr<Entity> buyTowerButton;
+	EntityID buyTowerButton;
 
-	std::shared_ptr<Entity> selectorCursor[4];
+	EntityID selectorCursor[4];
 	Vec2 cursorlocation[4] = {	Vec2(0, 0), Vec2(0, 0), Vec2(0, 0), Vec2(0, 0) };
 
-	std::shared_ptr<Entity> dealBackground;
+	EntityID dealBackground;
 
-	std::shared_ptr<Entity> refreshButton[5];
+	EntityID refreshButton[5];
 
-	std::shared_ptr<Entity> acceptButton;
+	EntityID acceptButton;
 
-	std::shared_ptr<Entity> handText;
-	std::shared_ptr<Entity> timerText;
+	EntityID handText;
+	EntityID timerText;
+
+	EntityID spawnPoint;
+
+	std::vector<EntityID> waypoints;
+
+	std::vector<EntityID> enemyList;
+
+	std::vector<EntityID> projectiles;
 
 	float currentTime = 5.0f;
 	int previousTime = 0;
 
+	float timeGap = 0.75f;
+	float timer = 0.0f;
+
+	int level = 0;
+	int enemiesSpawned = 0;
+	int enemiesPerWave = 0;
+	int enemyHP = 0;
+	int enemySpeed = 0;
+	int index = 0;
+
+	bool spawningDone = false;
+	int aliveEnemies = 0;
+
 	bool handresult = false;
 
 	bool dealt = false;
+	float dealDelay = 1.0f;
+	float dealTimer = 0.0f;
 
 	bool isBuying = false;
 
@@ -86,6 +121,8 @@ private:
 	void createRefreshButton();
 	void createAcceptButton();
 
+	void loadWaveData();
+
 	void createTower();
 	
 	void dealHand();
@@ -93,7 +130,7 @@ private:
 
 	void handResult();
 
-	void changeCard(std::shared_ptr<Entity>* card, int selection);
+	void changeCard(std::shared_ptr<Entity> card, int selection);
 
 	void createface(std::shared_ptr<Entity> card);
 
@@ -101,5 +138,19 @@ private:
 	void createTimerText(std::string s, int size, Vec2 pos);	
 
 	void setTowerStats(int hand, int high, std::shared_ptr<Entity> tower);
+
+	EntityID createPoints(Vec2 p);
+
+	void createWaypoint();
+
+	void createEnemy(Vec2 p, int hp, int speed, int index);
+
+	void createProjectile(Vec2 p, int damage, std::shared_ptr<Entity> target, int speed);
+
+	void updateEnemiesInRange(std::shared_ptr<Entity> enemy);
+
+	void towerAttack(std::shared_ptr<Entity> tower);
+
+	void resetLoop();
 };
 
