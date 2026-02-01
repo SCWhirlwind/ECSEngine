@@ -1,5 +1,4 @@
 #include "Scene_Poker.h"
-#include "Scene_Menu.h"
 #include "GameManager.h"
 #include "ComponentHeaders.h"
 #include <iostream>
@@ -265,8 +264,9 @@ void Scene_Poker::update()
 							enemyList.erase(std::remove(enemyList.begin(), enemyList.end(), enemyEntity->id()), enemyList.end());
 							enemyEntity->destroy();
 							//subtract lives
-
+							lives--;
 							aliveEnemies--;
+							createLivesText("Lives " + std::to_string(lives), 50, Vec2(1100, 200));
 						}
 					}
 				}
@@ -290,9 +290,9 @@ void Scene_Poker::update()
 			}
 		}
 
-		for (EntityID projectile : projectiles)
+		for (auto it = projectiles.begin(); it != projectiles.end();)
 		{
-			auto projectileEntity = m_entityManager.getEntity(projectile);
+			auto projectileEntity = m_entityManager.getEntity(*it);
 			
 			if (projectileEntity)
 			{
@@ -309,24 +309,27 @@ void Scene_Poker::update()
 				float distsqr = dx * dx + dy * dy;
 				float hitRadiusSq = 10.0f;
 
+				if (!projectileComb.target || !projectileComb.target->isActive())
+				{
+					projectileEntity->destroy();
+					it = projectiles.erase(it);
+					continue;
+				}
+
 				if (distsqr <= hitRadiusSq)
 				{
 					projectileComb.target->getComponent<EnemyComponent>().hp -= projectileComb.damage;
 					projectileEntity->destroy();
-				}
-				else
-				{
-					float dist = std::sqrt(distsqr);
-					float moveX = (dx / dist) * projectileComb.speed;
-					float moveY = (dy / dist) * projectileComb.speed;
-					transform.x += moveX;
-					transform.y += moveY;
+					it = projectiles.erase(it);
+					continue;
 				}
 
-				if (!projectileComb.target->isActive())
-				{
-					projectileEntity->destroy();
-				}
+				float dist = std::sqrt(distsqr);
+				float moveX = (dx / dist) * projectileComb.speed;
+				float moveY = (dy / dist) * projectileComb.speed;
+				transform.x += moveX;
+				transform.y += moveY;
+				++it;
 			}
 		}
 
@@ -334,6 +337,7 @@ void Scene_Poker::update()
 		{
 			m_state = Scene_Poker::State::BUILD;
 			resetLoop();
+			createLevelText("Level " + std::to_string(level + 1), 50, Vec2(1100, 50));
 		}
 
 		break;
@@ -399,6 +403,8 @@ void Scene_Poker::init()
 
 	loadWaveData();
 
+	createLevelText("Level " + std::to_string(level + 1), 50, Vec2(1100, 50));
+	createLivesText("Lives " + std::to_string(lives), 50, Vec2(1100, 200));
 	m_state = Scene_Poker::State::BUILD;
 }
 
@@ -1060,6 +1066,34 @@ void Scene_Poker::createTimerText(std::string s, int size, Vec2 pos)
 	timerTextEntity->addComponent<TextComponent>(s, "Snes.ttf", size, 700, 300, 1, SDL_Color{ 255, 255, 255 });
 	timerTextEntity->addComponent<TransformComponent>(pos, Vec2(0, 0), 0);
 	timerText = timerTextEntity->id();
+}
+
+void Scene_Poker::createLevelText(std::string s, int size, Vec2 pos)
+{
+	auto levelTextEntity = m_entityManager.getEntity(levelText);
+
+	if (levelTextEntity)
+	{
+		levelTextEntity->destroy();
+	}
+	levelTextEntity = m_entityManager.addEntity("Text");
+	levelTextEntity->addComponent<TextComponent>(s, "Snes.ttf", size, 700, 300, 1, SDL_Color{ 255, 255, 255 });
+	levelTextEntity->addComponent<TransformComponent>(pos, Vec2(0, 0), 0);
+	levelText = levelTextEntity->id();
+}
+
+void Scene_Poker::createLivesText(std::string s, int size, Vec2 pos)
+{
+	auto livesTextEntity = m_entityManager.getEntity(livesText);
+
+	if (livesTextEntity)
+	{
+		livesTextEntity->destroy();
+	}
+	livesTextEntity = m_entityManager.addEntity("Text");
+	livesTextEntity->addComponent<TextComponent>(s, "Snes.ttf", size, 700, 300, 1, SDL_Color{ 255, 255, 255 });
+	livesTextEntity->addComponent<TransformComponent>(pos, Vec2(0, 0), 0);
+	livesText = livesTextEntity->id();
 }
 
 void Scene_Poker::setTowerStats(int hand, int high, std::shared_ptr<Entity> tower)

@@ -74,6 +74,9 @@ private:
 	EntityID handText;
 	EntityID timerText;
 
+	EntityID levelText;
+	EntityID livesText;
+
 	EntityID spawnPoint;
 
 	std::vector<EntityID> waypoints;
@@ -94,6 +97,8 @@ private:
 	int enemyHP = 0;
 	int enemySpeed = 0;
 	int index = 0;
+
+	int lives = 20;
 
 	bool spawningDone = false;
 	int aliveEnemies = 0;
@@ -136,6 +141,8 @@ private:
 
 	void createHandText(std::string s, int size, Vec2 pos);
 	void createTimerText(std::string s, int size, Vec2 pos);	
+	void createLevelText(std::string s, int size, Vec2 pos);
+	void createLivesText(std::string s, int size, Vec2 pos);
 
 	void setTowerStats(int hand, int high, std::shared_ptr<Entity> tower);
 
